@@ -2,6 +2,7 @@ import dotenv from 'dotenv';
 import express from 'express';
 import cors from 'cors';
 import pool from './db.js';
+import tareaRoutes from './routes/tarea.routes.js';
 
 // Configuración inicial
 dotenv.config();
@@ -10,6 +11,8 @@ const app = express();
 // Middlewares
 app.use(cors());
 app.use(express.json());
+
+app.use('/api', tareaRoutes);
 
 // Función de verificación de conexión
 async function testConnection() {
