@@ -1,6 +1,8 @@
 <script setup>
 import { ref } from 'vue';
 import { useRouter } from 'vue-router';
+import { setPerfil } from '@/stores/auth';
+import { limpiarSesion } from '@/stores/auth';
 
 const rut = ref('');
 const clave = ref('');
@@ -8,12 +10,14 @@ const router = useRouter();
 
 // Simulación de login con perfil
 function iniciarSesion() {
-  // En una app real aquí harías POST al backend
   if (rut.value === '12345678' && clave.value === 'admin') {
+    setPerfil('admin');
     router.push('/admin');
   } else if (rut.value === '23456789' && clave.value === 'tecnico') {
+    setPerfil('tecnico');
     router.push('/tecnico');
   } else if (rut.value === '34567890' && clave.value === 'supervisor') {
+    setPerfil('supervisor');
     router.push('/supervisor');
   } else {
     alert('Credenciales inválidas');
