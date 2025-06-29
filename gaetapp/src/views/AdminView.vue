@@ -7,17 +7,32 @@ const nuevoUsuario = ref({
   nombre: '',
   apellidoPaterno: '',
   apellidoMaterno: '',
-  email: '',
+  emailPersonal: '',     // NUEVO
+  email: '',             // Corporativo
   telefono: '',
   perfil: '',
   clave: ''
 });
 
-function crearUsuario() {
-  // Aquí iría la lógica real de conexión con backend (POST a /api/persona o similar)
-  console.log('Usuario a crear:', nuevoUsuario.value);
-  alert('Usuario creado (simulado)');
-  Object.keys(nuevoUsuario.value).forEach(key => nuevoUsuario.value[key] = '');
+async function crearUsuario() {
+  try {
+    const res = await fetch('http://localhost:3000/api/usuarios', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(nuevoUsuario.value),
+    });
+
+    const data = await res.json();
+    if (res.ok) {
+      alert('✅ Usuario creado');
+      Object.keys(nuevoUsuario.value).forEach(k => nuevoUsuario.value[k] = '');
+    } else {
+      alert(`❌ Error: ${data.error || 'No se pudo crear el usuario'}`);
+    }
+  } catch (err) {
+    alert('❌ Error de red al intentar crear usuario');
+    console.error(err);
+  }
 }
 </script>
 
@@ -31,13 +46,14 @@ function crearUsuario() {
         <input v-model="nuevoUsuario.nombre" type="text" placeholder="Nombre" class="border p-2 rounded" />
         <input v-model="nuevoUsuario.apellidoPaterno" type="text" placeholder="Apellido paterno" class="border p-2 rounded" />
         <input v-model="nuevoUsuario.apellidoMaterno" type="text" placeholder="Apellido materno" class="border p-2 rounded" />
-        <input v-model="nuevoUsuario.email" type="email" placeholder="Correo" class="border p-2 rounded" />
+        <input v-model="nuevoUsuario.emailPersonal" type="email" placeholder="Correo personal" class="border p-2 rounded" />
+        <input v-model="nuevoUsuario.email" type="email" placeholder="Correo corporativo" class="border p-2 rounded" />
         <input v-model="nuevoUsuario.telefono" type="text" placeholder="Teléfono" class="border p-2 rounded" />
         <select v-model="nuevoUsuario.perfil" class="border p-2 rounded">
           <option disabled value="">Seleccione perfil</option>
-          <option value="admin">Administrador</option>
-          <option value="tecnico">Técnico</option>
-          <option value="supervisor">Supervisor</option>
+          <option value="1">Administrador</option>
+          <option value="2">Técnico</option>
+          <option value="3">Supervisor</option>
         </select>
         <input v-model="nuevoUsuario.clave" type="password" placeholder="Clave" class="border p-2 rounded col-span-2" />
       </div>
