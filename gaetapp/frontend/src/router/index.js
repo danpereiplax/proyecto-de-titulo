@@ -1,6 +1,6 @@
 import { createRouter, createWebHistory } from 'vue-router';
 import HomeView from '../views/HomeView.vue';
-import { getPerfil } from '@/stores/auth';
+import { getPerfil } from '../stores/auth';
 
 const routes = [
   {

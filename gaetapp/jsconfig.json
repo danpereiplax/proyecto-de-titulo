@@ -1,7 +1,8 @@
 {
   "compilerOptions": {
+    "baseUrl": ".",                      // base es la raíz del repo
     "paths": {
-      "@/*": ["./src/*"]
+      "@/*": ["frontend/src/*"]          // path correcto hacia la carpeta src dentro de frontend
     }
   },
   "exclude": ["node_modules", "dist"]
