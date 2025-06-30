@@ -1,34 +1,136 @@
 {
-  "name": "gaetapp",
-  "version": "0.0.0",
-  "private": true,
-  "type": "module",
+  "name": "gaet-backend",
+  "version": "1.0.0",
+  "description": "Backend API para el sistema GAET (Gestión, Administración y Ejecución de Tareas)",
+  "main": "server.js",
   "scripts": {
-    "dev": "vite",
-    "build": "vite build",
-    "preview": "vite preview",
-    "lint": "eslint . --fix",
-    "format": "prettier --write src/"
+    "start": "node server.js",
+    "dev": "nodemon server.js",
+    "dev:watch": "nodemon --inspect server.js",
+    "test": "jest",
+    "test:watch": "jest --watch",
+    "test:coverage": "jest --coverage",
+    "lint": "eslint . --ext .js",
+    "lint:fix": "eslint . --ext .js --fix",
+    "db:migrate": "node scripts/migrate.js",
+    "db:seed": "node scripts/seed.js",
+    "db:reset": "npm run db:migrate && npm run db:seed",
+    "build": "echo 'No build step required for Node.js'",
+    "production": "NODE_ENV=production node server.js"
   },
+  "keywords": [
+    "nodejs",
+    "express",
+    "postgresql",
+    "jwt",
+    "api",
+    "rest",
+    "gaet",
+    "task-management"
+  ],
+  "author": "Daniel Pereira",
+  "license": "ISC",
   "dependencies": {
-    "axios": "^1.10.0",
+    "express": "^4.18.2",
     "cors": "^2.8.5",
-    "dotenv": "^16.5.0",
-    "express": "^5.1.0",
-    "pg": "^8.16.2",
-    "pinia": "^3.0.3",
-    "vue": "^3.5.17",
-    "vue-router": "^4.5.1"
+    "helmet": "^7.1.0",
+    "morgan": "^1.10.0",
+    "compression": "^1.7.4",
+    "express-rate-limit": "^7.1.5",
+    "bcrypt": "^5.1.1",
+    "jsonwebtoken": "^9.0.2",
+    "pg": "^8.11.3",
+    "dotenv": "^16.3.1",
+    "multer": "^1.4.5-lts.1",
+    "sharp": "^0.32.6",
+    "joi": "^17.11.0",
+    "nodemailer": "^6.9.7",
+    "pdfkit": "^0.14.0",
+    "exceljs": "^4.4.0",
+    "moment": "^2.29.4",
+    "uuid": "^9.0.1",
+    "express-validator": "^7.0.1",
+    "cookie-parser": "^1.4.6"
   },
   "devDependencies": {
-    "@eslint/js": "^9.29.0",
-    "@vitejs/plugin-vue": "^6.0.0",
-    "@vue/eslint-config-prettier": "^10.2.0",
-    "eslint": "^9.29.0",
-    "eslint-plugin-vue": "~10.2.0",
-    "globals": "^16.2.0",
-    "prettier": "3.5.3",
-    "vite": "^7.0.0",
-    "vite-plugin-vue-devtools": "^7.7.7"
+    "nodemon": "^3.0.2",
+    "jest": "^29.7.0",
+    "supertest": "^6.3.3",
+    "eslint": "^8.55.0",
+    "eslint-config-airbnb-base": "^15.0.0",
+    "eslint-plugin-import": "^2.29.0",
+    "eslint-config-prettier": "^9.1.0",
+    "eslint-plugin-prettier": "^5.0.1",
+    "prettier": "^3.1.1",
+    "@types/jest": "^29.5.8"
+  },
+  "engines": {
+    "node": ">=18.0.0",
+    "npm": ">=9.0.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/danpereiplax/proyecto-de-titulo.git",
+    "directory": "gaetapp/backend"
+  },
+  "bugs": {
+    "url": "https://github.com/danpereiplax/proyecto-de-titulo/issues"
+  },
+  "homepage": "https://github.com/danpereiplax/proyecto-de-titulo#readme",
+  "jest": {
+    "testEnvironment": "node",
+    "coverageDirectory": "coverage",
+    "collectCoverageFrom": [
+      "**/*.js",
+      "!node_modules/**",
+      "!coverage/**",
+      "!server.js",
+      "!scripts/**"
+    ],
+    "testMatch": [
+      "**/__tests__/**/*.js",
+      "**/?(*.)+(spec|test).js"
+    ]
+  },
+  "eslintConfig": {
+    "extends": [
+      "airbnb-base",
+      "prettier"
+    ],
+    "plugins": [
+      "prettier"
+    ],
+    "env": {
+      "node": true,
+      "es6": true,
+      "jest": true
+    },
+    "rules": {
+      "prettier/prettier": "error",
+      "no-console": "off",
+      "consistent-return": "off",
+      "func-names": "off",
+      "object-shorthand": "off",
+      "no-process-exit": "off",
+      "no-param-reassign": "off",
+      "no-return-await": "off",
+      "no-underscore-dangle": "off",
+      "class-methods-use-this": "off",
+      "prefer-destructuring": [
+        "error",
+        {
+          "object": true,
+          "array": false
+        }
+      ]
+    }
+  },
+  "prettier": {
+    "semi": true,
+    "trailingComma": "es5",
+    "singleQuote": true,
+    "printWidth": 100,
+    "tabWidth": 2,
+    "useTabs": false
   }
 }

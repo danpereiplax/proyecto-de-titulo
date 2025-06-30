@@ -1,13 +1,14 @@
 <script setup>
 import { useRouter } from 'vue-router';
-import { limpiarSesion } from '@/stores/auth';
+import { useUserStore } from '@/stores/userStore';
 
 const router = useRouter();
 
-const cerrarSesion = () => {
-  limpiarSesion();
-  router.push('/');
-};
+const logout = () => {
+  limpiarSesion() // QUITAR
+  userStore.logout() // AGREGAR
+  router.push('/login')
+}
 </script>
 
 <template>
