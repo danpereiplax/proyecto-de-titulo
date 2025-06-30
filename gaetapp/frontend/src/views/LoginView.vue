@@ -106,17 +106,20 @@ export default {
           // Redirigir según el rol del usuario
           const role = userStore.userProfile
           
+          console.log('Login exitoso, rol:', role) // Debug
+          
           switch (role) {
-            case 'Administrador':
+            case 'ADMINISTRADOR':
               router.push('/admin')
               break
-            case 'Supervisor':
+            case 'SUPERVISOR':
               router.push('/supervisor')
               break
-            case 'Técnico':
+            case 'TECNICO':
               router.push('/technician')
               break
             default:
+              console.error('Rol no reconocido:', role)
               router.push('/login')
           }
         } else {

@@ -29,7 +29,7 @@ const routes = [
     component: AdminView,
     meta: { 
       requiresAuth: true,
-      roles: ['Administrador']
+      roles: ['ADMINISTRADOR']
     }
   },
   {
@@ -38,7 +38,7 @@ const routes = [
     component: SupervisorView,
     meta: { 
       requiresAuth: true,
-      roles: ['Administrador', 'Supervisor']
+      roles: ['ADMINISTRADOR', 'SUPERVISOR']
     }
   },
   {
@@ -47,7 +47,7 @@ const routes = [
     component: TechnicianView,
     meta: { 
       requiresAuth: true,
-      roles: ['Administrador', 'Supervisor', 'Técnico']
+      roles: ['ADMINISTRADOR', 'SUPERVISOR', 'TECNICO']
     }
   },
   {
@@ -81,11 +81,11 @@ router.beforeEach(async (to, from, next) => {
     const role = userStore.userProfile
     
     switch (role) {
-      case 'Administrador':
+      case 'ADMINISTRADOR':
         return next('/admin')
-      case 'Supervisor':
+      case 'SUPERVISOR':
         return next('/supervisor')
-      case 'Técnico':
+      case 'TECNICO':
         return next('/technician')
       default:
         return next('/login')
@@ -99,11 +99,11 @@ router.beforeEach(async (to, from, next) => {
     if (!to.meta.roles.includes(userRole)) {
       // Redirigir a la vista apropiada para su rol
       switch (userRole) {
-        case 'Administrador':
+        case 'ADMINISTRADOR':
           return next('/admin')
-        case 'Supervisor':
+        case 'SUPERVISOR':
           return next('/supervisor')
-        case 'Técnico':
+        case 'TECNICO':
           return next('/technician')
         default:
           return next('/login')

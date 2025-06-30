@@ -1,4 +1,4 @@
-// backend/routes/authRoutes.js
+// backend/routes/authRoutes.js - CORREGIDO para tu base de datos
 const express = require('express');
 const bcrypt = require('bcrypt');
 const { Pool } = require('pg');
@@ -14,10 +14,6 @@ const pool = new Pool({
   password: process.env.DB_PASSWORD || 'password',
   port: process.env.DB_PORT || 5432,
 });
-
-// =============================================================================
-// AUTHENTICATION ROUTES
-// =============================================================================
 
 /**
  * POST /api/auth/login - Iniciar sesión
@@ -36,7 +32,7 @@ router.post('/login', async (req, res) => {
   try {
     const client = await pool.connect();
 
-    // Buscar usuario por email (corporativo o personal)
+    // Buscar usuario por email (corporativo o personal) - CORREGIDO
     const userResult = await client.query(`
       SELECT 
         p.rut_persona,
@@ -45,7 +41,7 @@ router.post('/login', async (req, res) => {
         p.apellido_paterno_persona,
         p.apellido_materno_persona,
         p.email_corporativo,
-        p.email_pesonal,
+        p.email_personal,
         p.telefono,
         p.activo,
         p.fecha_ingreso,
@@ -54,7 +50,7 @@ router.post('/login', async (req, res) => {
         pu.descripcion_perfil_usuario
       FROM persona p
       JOIN perfil_usuario pu ON p.id_perfil_usuario = pu.id_perfil_usuario
-      WHERE (p.email_corporativo = $1 OR p.email_pesonal = $1)
+      WHERE (p.email_corporativo = $1 OR p.email_personal = $1)
     `, [email]);
 
     if (userResult.rows.length === 0) {
@@ -77,8 +73,6 @@ router.post('/login', async (req, res) => {
     }
 
     // Verificar contraseña
-    // Nota: Si no hay password_hash, es la primera vez que se loguea
-    // En ese caso, crear hash de la contraseña proporcionada
     let isValidPassword = false;
 
     if (!user.password_hash) {
@@ -124,7 +118,7 @@ router.post('/login', async (req, res) => {
       apellido_paterno_persona: user.apellido_paterno_persona,
       apellido_materno_persona: user.apellido_materno_persona,
       email_corporativo: user.email_corporativo,
-      email_pesonal: user.email_pesonal,
+      email_personal: user.email_personal, // CORREGIDO
       telefono: user.telefono,
       fecha_ingreso: user.fecha_ingreso,
       id_perfil_usuario: user.id_perfil_usuario,
@@ -180,7 +174,7 @@ router.get('/verify', authenticateToken, async (req, res) => {
       apellido_paterno_persona: req.user.apellido_paterno_persona,
       apellido_materno_persona: req.user.apellido_materno_persona,
       email_corporativo: req.user.email_corporativo,
-      email_pesonal: req.user.email_pesonal,
+      email_personal: req.user.email_personal, // CORREGIDO
       telefono: req.user.telefono,
       fecha_ingreso: req.user.fecha_ingreso,
       id_perfil_usuario: req.user.id_perfil_usuario,
@@ -205,9 +199,6 @@ router.get('/verify', authenticateToken, async (req, res) => {
  */
 router.post('/logout', authenticateToken, async (req, res) => {
   try {
-    // Aquí se podría agregar el token a una lista negra si se implementa
-    // Por ahora solo confirmamos el logout
-    
     res.json({
       message: 'Sesión cerrada exitosamente'
     });
@@ -228,7 +219,7 @@ router.put('/profile', authenticateToken, async (req, res) => {
     nombre_persona,
     apellido_paterno_persona,
     apellido_materno_persona,
-    email_pesonal,
+    email_personal, // CORREGIDO
     telefono
   } = req.body;
 
@@ -241,16 +232,16 @@ router.put('/profile', authenticateToken, async (req, res) => {
         nombre_persona = COALESCE($1, nombre_persona),
         apellido_paterno_persona = COALESCE($2, apellido_paterno_persona),
         apellido_materno_persona = COALESCE($3, apellido_materno_persona),
-        email_pesonal = COALESCE($4, email_pesonal),
+        email_personal = COALESCE($4, email_personal),
         telefono = COALESCE($5, telefono)
       WHERE rut_persona = $6
       RETURNING 
         rut_persona, rut_dv_persona, nombre_persona, apellido_paterno_persona,
-        apellido_materno_persona, email_corporativo, email_pesonal, telefono,
+        apellido_materno_persona, email_corporativo, email_personal, telefono,
         fecha_ingreso
     `, [
       nombre_persona, apellido_paterno_persona, apellido_materno_persona,
-      email_pesonal, telefono, req.user.rut_persona
+      email_personal, telefono, req.user.rut_persona // CORREGIDO
     ]);
 
     client.release();
@@ -368,7 +359,7 @@ router.get('/permissions', authenticateToken, async (req, res) => {
   try {
     // Definir permisos basados en el perfil del usuario
     const rolePermissions = {
-      'Administrador': [
+      'ADMINISTRADOR': [
         'admin.*',
         'users.*',
         'tasks.*',
@@ -376,7 +367,7 @@ router.get('/permissions', authenticateToken, async (req, res) => {
         'reports.*',
         'config.*'
       ],
-      'Supervisor': [
+      'SUPERVISOR': [
         'tasks.view',
         'tasks.create',
         'tasks.edit',
@@ -387,12 +378,18 @@ router.get('/permissions', authenticateToken, async (req, res) => {
         'clients.edit',
         'users.view'
       ],
-      'Técnico': [
+      'TECNICO': [
         'tasks.view_assigned',
         'tasks.update_status',
         'tasks.upload_evidence',
         'tasks.complete',
         'profile.edit'
+      ],
+      'RRHH': [
+        'users.view',
+        'users.create',
+        'users.edit',
+        'reports.hr'
       ]
     };
 
@@ -432,70 +429,23 @@ router.post('/forgot-password', async (req, res) => {
     const userResult = await client.query(`
       SELECT rut_persona, nombre_persona, apellido_paterno_persona
       FROM persona 
-      WHERE (email_corporativo = $1 OR email_pesonal = $1) AND activo = true
+      WHERE (email_corporativo = $1 OR email_personal = $1) AND activo = true
     `, [email]);
 
     client.release();
 
     // Por seguridad, siempre retornamos el mismo mensaje
-    // independientemente de si el usuario existe o no
     res.json({
       message: 'Si el email existe en nuestro sistema, recibirás instrucciones para restablecer tu contraseña'
     });
 
     // Si el usuario existe, aquí se podría enviar un email
-    // con un token de restablecimiento
     if (userResult.rows.length > 0) {
-      // TODO: Implementar envío de email con token de restablecimiento
       console.log('Email de restablecimiento enviado a:', email);
     }
 
   } catch (error) {
     console.error('Error en forgot password:', error);
-    res.status(500).json({
-      message: 'Error interno del servidor',
-      code: 'INTERNAL_ERROR'
-    });
-  }
-});
-
-/**
- * POST /api/auth/reset-password - Restablecer contraseña con token
- */
-router.post('/reset-password', async (req, res) => {
-  const { token, newPassword, confirmPassword } = req.body;
-
-  if (!token || !newPassword || !confirmPassword) {
-    return res.status(400).json({
-      message: 'Todos los campos son requeridos',
-      code: 'MISSING_FIELDS'
-    });
-  }
-
-  if (newPassword !== confirmPassword) {
-    return res.status(400).json({
-      message: 'Las contraseñas no coinciden',
-      code: 'PASSWORD_MISMATCH'
-    });
-  }
-
-  if (newPassword.length < 6) {
-    return res.status(400).json({
-      message: 'La contraseña debe tener al menos 6 caracteres',
-      code: 'PASSWORD_TOO_SHORT'
-    });
-  }
-
-  try {
-    // TODO: Implementar verificación de token de restablecimiento
-    // Por ahora retornamos error
-    res.status(400).json({
-      message: 'Funcionalidad en desarrollo',
-      code: 'NOT_IMPLEMENTED'
-    });
-
-  } catch (error) {
-    console.error('Error en reset password:', error);
     res.status(500).json({
       message: 'Error interno del servidor',
       code: 'INTERNAL_ERROR'

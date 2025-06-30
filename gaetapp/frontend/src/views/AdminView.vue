@@ -42,7 +42,7 @@
     </nav>
 
     <!-- Loading Overlay -->
-    <div v-if="loading" class="fixed inset-0 bg-gray-600 bg-opacity-50 z-50 flex items-center justify-center">
+    <div v-if="loading" class="fixed inset-0 bg-gray-600 bg-opacity-50 z-50 flex items-center justify-center loading-overlay">
       <div class="bg-white p-6 rounded-lg shadow-lg">
         <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
         <p class="mt-2 text-gray-600">Cargando...</p>
@@ -127,9 +127,9 @@
               <label class="block text-sm font-medium text-gray-700">Filtrar por perfil</label>
               <select v-model="filters.perfil" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
                 <option value="">Todos los perfiles</option>
-                <option value="Administrador">Administrador</option>
-                <option value="Supervisor">Supervisor</option>
-                <option value="Técnico">Técnico</option>
+                <option value="ADMINISTRADOR">Administrador</option>
+                <option value="SUPERVISOR">Supervisor</option>
+                <option value="TECNICO">Técnico</option>
               </select>
             </div>
             <div>
@@ -144,7 +144,7 @@
         </div>
 
         <!-- Users Table -->
-        <div class="bg-white shadow overflow-hidden sm:rounded-md">
+        <div class="bg-white shadow overflow-hidden sm:rounded-md table-container">
           <table class="min-w-full divide-y divide-gray-300">
             <thead class="bg-gray-50">
               <tr>
@@ -153,11 +153,11 @@
                 <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Perfil</th>
                 <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Estado</th>
                 <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Fecha Ingreso</th>
-                <th class="relative px-6 py-3"><span class="sr-only">Acciones</span></th>
+                <th class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider table-actions">Acciones</th>
               </tr>
             </thead>
             <tbody class="bg-white divide-y divide-gray-200">
-              <tr v-for="user in filteredUsers" :key="user.rut_persona" class="hover:bg-gray-50">
+              <tr v-for="user in filteredUsers" :key="user.rut_persona" class="hover:bg-gray-50 transition-colors">
                 <td class="px-6 py-4 whitespace-nowrap">
                   <div class="flex items-center">
                     <div class="h-10 w-10 flex-shrink-0">
@@ -176,7 +176,7 @@
                   </div>
                 </td>
                 <td class="px-6 py-4 whitespace-nowrap">
-                  <div class="text-sm text-gray-900">{{ user.email_corporativo || user.email_pesonal }}</div>
+                  <div class="text-sm text-gray-900">{{ user.email_corporativo || user.email_personal }}</div>
                   <div class="text-sm text-gray-500">{{ user.telefono || 'Sin teléfono' }}</div>
                 </td>
                 <td class="px-6 py-4 whitespace-nowrap">
@@ -193,22 +193,46 @@
                 <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                   {{ formatDate(user.fecha_ingreso) }}
                 </td>
-                <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                  <button @click="openUserModal(user)" class="text-blue-600 hover:text-blue-900 mr-3 transition-colors">
-                    <i class="fas fa-edit"></i>
-                  </button>
-                  <button @click="toggleUserStatus(user)" 
-                          :class="user.activo ? 'text-red-600 hover:text-red-900' : 'text-green-600 hover:text-green-900'"
-                          class="transition-colors">
-                    <i :class="user.activo ? 'fas fa-user-slash' : 'fas fa-user-check'"></i>
-                  </button>
+                <!-- COLUMNA DE ACCIONES MEJORADA -->
+                <td class="px-6 py-4 whitespace-nowrap text-center">
+                  <div class="flex items-center justify-center space-x-3">
+                    <!-- Botón Editar -->
+                    <button 
+                      @click="openUserModal(user)" 
+                      class="action-button edit-button"
+                      :title="`Editar ${user.nombre_persona}`"
+                    >
+                      <i class="fas fa-edit text-sm"></i>
+                    </button>
+                    
+                    <!-- Botón Activar/Desactivar -->
+                    <button 
+                      @click="toggleUserStatus(user)" 
+                      :class="[
+                        'action-button',
+                        user.activo ? 'toggle-button-active' : 'toggle-button-inactive'
+                      ]"
+                      :title="user.activo ? `Desactivar ${user.nombre_persona}` : `Activar ${user.nombre_persona}`"
+                    >
+                      <i :class="user.activo ? 'fas fa-user-slash' : 'fas fa-user-check'" class="text-sm"></i>
+                    </button>
+                  </div>
                 </td>
               </tr>
             </tbody>
           </table>
-          <div v-if="filteredUsers.length === 0" class="text-center py-8">
+          
+          <!-- Mensaje cuando no hay usuarios -->
+          <div v-if="filteredUsers.length === 0" class="text-center py-12">
             <i class="fas fa-users text-gray-400 text-4xl mb-4"></i>
-            <p class="text-gray-500">No se encontraron usuarios con los filtros aplicados</p>
+            <p class="text-gray-500 text-lg">No se encontraron usuarios con los filtros aplicados</p>
+            <button 
+              @click="openUserModal()" 
+              class="mt-4 inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors"
+            >
+              <i class="fas fa-plus mr-2"></i>
+              Crear primer usuario
+            </button>
           </div>
         </div>
       </div>
@@ -425,7 +449,7 @@
 
     <!-- Toast Notifications -->
     <div v-if="toast.show" :class="[
-      'fixed top-4 right-4 z-50 p-4 rounded-md shadow-lg max-w-sm',
+      'fixed top-4 right-4 z-50 p-4 rounded-md shadow-lg max-w-sm transition-all duration-300',
       toast.type === 'success' ? 'bg-green-500 text-white' : 'bg-red-500 text-white'
     ]">
       <div class="flex items-center">
@@ -549,9 +573,9 @@ export default {
 
     const getPerfilColor = (perfil) => {
       const colors = {
-        'Administrador': 'bg-purple-100 text-purple-800',
-        'Supervisor': 'bg-blue-100 text-blue-800',
-        'Técnico': 'bg-green-100 text-green-800'
+        'ADMINISTRADOR': 'bg-purple-100 text-purple-800',
+        'SUPERVISOR': 'bg-blue-100 text-blue-800',
+        'TECNICO': 'bg-green-100 text-green-800'
       }
       return colors[perfil] || 'bg-gray-100 text-gray-800'
     }
@@ -883,11 +907,163 @@ export default {
 </script>
 
 <style scoped>
-/* Estilos adicionales si son necesarios */
-.fade-enter-active, .fade-leave-active {
-  transition: opacity 0.3s;
+/* Estilos para asegurar que los botones se vean correctamente */
+.table-actions {
+  min-width: 120px; /* Asegura espacio mínimo para los botones */
 }
+
+/* Estilos para los botones de acción */
+.action-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  transition: all 0.2s ease-in-out;
+  border: none;
+  cursor: pointer;
+  background-color: transparent;
+}
+
+.action-button:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.action-button:focus {
+  outline: none;
+  ring: 2px;
+  ring-offset: 1px;
+}
+
+/* Iconos de FontAwesome - asegurar que se muestren */
+.fas {
+  font-family: "Font Awesome 5 Free", "Font Awesome 6 Free";
+  font-weight: 900;
+  font-style: normal;
+  font-variant: normal;
+  text-rendering: auto;
+  line-height: 1;
+}
+
+/* Estilos específicos para cada tipo de botón */
+.edit-button {
+  color: #2563eb;
+}
+
+.edit-button:hover {
+  color: #1d4ed8;
+  background-color: #dbeafe;
+}
+
+.edit-button:focus {
+  ring-color: #3b82f6;
+}
+
+.toggle-button-active {
+  color: #dc2626;
+}
+
+.toggle-button-active:hover {
+  color: #b91c1c;
+  background-color: #fee2e2;
+}
+
+.toggle-button-active:focus {
+  ring-color: #ef4444;
+}
+
+.toggle-button-inactive {
+  color: #16a34a;
+}
+
+.toggle-button-inactive:hover {
+  color: #15803d;
+  background-color: #dcfce7;
+}
+
+.toggle-button-inactive:focus {
+  ring-color: #22c55e;
+}
+
+/* Responsividad para móviles */
+@media (max-width: 640px) {
+  .action-button {
+    width: 28px;
+    height: 28px;
+  }
+  
+  .action-button i {
+    font-size: 12px;
+  }
+  
+  .table-actions {
+    min-width: 80px;
+  }
+}
+
+/* Animaciones de fade para las transiciones */
+.fade-enter-active, .fade-leave-active {
+  transition: opacity 0.3s ease;
+}
+
 .fade-enter-from, .fade-leave-to {
   opacity: 0;
+}
+
+/* Asegurar que las tablas sean responsivas */
+.table-container {
+  overflow-x: auto;
+  max-width: 100%;
+}
+
+/* Hover effects para las filas */
+tbody tr:hover {
+  background-color: #f9fafb;
+}
+
+/* Estilos para el estado de carga */
+.loading-overlay {
+  background-color: rgba(255, 255, 255, 0.8);
+  backdrop-filter: blur(2px);
+}
+
+/* Mejoras visuales adicionales */
+.transition-colors {
+  transition-property: color, background-color, border-color, text-decoration-color, fill, stroke;
+  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+  transition-duration: 150ms;
+}
+
+.transition-all {
+  transition-property: all;
+  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+  transition-duration: 150ms;
+}
+
+/* Toast notifications styling */
+.toast-notification {
+  animation: slideIn 0.3s ease-out;
+}
+
+@keyframes slideIn {
+  from {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+/* Shadows for better depth perception */
+.shadow-lg {
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+}
+
+.hover\:shadow-md:hover {
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
 }
 </style>

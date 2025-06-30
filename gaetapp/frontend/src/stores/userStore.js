@@ -30,6 +30,8 @@ export const useUserStore = defineStore('user', () => {
       const response = await apiClient.post('/auth/login', credentials)
       const { token: authToken, user: userData } = response.data
       
+      console.log('Login response:', { authToken, userData }) // Debug
+      
       // Guardar token y datos de usuario
       token.value = authToken
       user.value = userData
@@ -41,6 +43,8 @@ export const useUserStore = defineStore('user', () => {
       
       // Cargar permisos del usuario
       await loadUserPermissions()
+      
+      console.log('User profile after login:', userProfile.value) // Debug
       
       return { success: true, user: userData }
     } catch (error) {
