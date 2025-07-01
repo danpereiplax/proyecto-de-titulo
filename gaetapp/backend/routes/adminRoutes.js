@@ -1,4 +1,4 @@
-// backend/routes/adminRoutes.js - CORREGIDO para tu base de datos
+// backend/routes/adminRoutes.js
 const express = require('express');
 const router = express.Router();
 const { Pool } = require('pg');

@@ -1,4 +1,4 @@
-// backend/routes/authRoutes.js - CORREGIDO para tu base de datos
+// backend/routes/authRoutes.js
 const express = require('express');
 const bcrypt = require('bcrypt');
 const { Pool } = require('pg');

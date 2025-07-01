@@ -1,4 +1,4 @@
-// backend/middleware/auth.js - CORREGIDO para tu base de datos
+// backend/middleware/auth.js
 const jwt = require('jsonwebtoken');
 const { Pool } = require('pg');
 
