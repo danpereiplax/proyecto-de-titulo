@@ -1,5 +1,5 @@
 // backend/config/database-mappings.js
-// Mapeo de los estados y tipos que están en tu base de datos actual
+// Mapeo de los estados y tipos que están en la base de datos actual
 
 const ESTADOS_TAREA = {
   ASIGNADA: 1,

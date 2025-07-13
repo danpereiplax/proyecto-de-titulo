@@ -4,9 +4,9 @@ import { useUserStore } from '@/stores/userStore'
 
 // Importar vistas
 import LoginView from '@/views/LoginView.vue'
-import AdminView from '@/views/AdminView.vue'
+import AdministradorView from '@/views/AdministradorView.vue'
 import SupervisorView from '@/views/SupervisorView.vue'
-import TechnicianView from '@/views/TechnicianView.vue'
+import TecnicoView from '@/views/TecnicoView.vue'
 import NotFoundView from '@/views/NotFoundView.vue'
 
 const routes = [
@@ -18,18 +18,15 @@ const routes = [
     path: '/login',
     name: 'Login',
     component: LoginView,
-    meta: { 
-      requiresAuth: false,
-      redirectIfAuthenticated: true
-    }
+    meta: { requiresGuest: true }
   },
   {
-    path: '/admin',
-    name: 'Admin',
-    component: AdminView,
+    path: '/administrador',
+    name: 'Administrador',
+    component: AdministradorView,
     meta: { 
-      requiresAuth: true,
-      roles: ['ADMINISTRADOR']
+      requiresAuth: true, 
+      roles: ['ADMINISTRADOR'] 
     }
   },
   {
@@ -37,17 +34,17 @@ const routes = [
     name: 'Supervisor',
     component: SupervisorView,
     meta: { 
-      requiresAuth: true,
-      roles: ['ADMINISTRADOR', 'SUPERVISOR']
+      requiresAuth: true, 
+      roles: ['SUPERVISOR', 'ADMINISTRADOR'] 
     }
   },
   {
-    path: '/technician',
-    name: 'Technician',
-    component: TechnicianView,
+    path: '/tecnico',
+    name: 'Tecnico',
+    component: TecnicoView,
     meta: { 
-      requiresAuth: true,
-      roles: ['ADMINISTRADOR', 'SUPERVISOR', 'TECNICO']
+      requiresAuth: true, 
+      roles: ['TECNICO', 'SUPERVISOR', 'ADMINISTRADOR'] 
     }
   },
   {
@@ -62,52 +59,65 @@ const router = createRouter({
   routes
 })
 
-// Guard de navegación global
+// Guards de navegación
 router.beforeEach(async (to, from, next) => {
   const userStore = useUserStore()
   
-  // Verificar autenticación al cargar la app
+  console.log('🔍 Router Guard:', {
+    to: to.path,
+    requiresAuth: to.meta.requiresAuth,
+    requiresGuest: to.meta.requiresGuest,
+    isAuthenticated: userStore.isAuthenticated
+  })
+
+  // Verificar autenticación si no está logueado
   if (!userStore.isAuthenticated) {
-    await userStore.checkAuth()
+    const isAuthValid = await userStore.checkAuth()
+    console.log('🔐 Verificación de auth:', isAuthValid)
   }
 
-  // Verificar si la ruta requiere autenticación
-  if (to.meta.requiresAuth && !userStore.isAuthenticated) {
-    return next('/login')
-  }
+  // Ruta requiere autenticación
+  if (to.meta.requiresAuth) {
+    if (!userStore.isAuthenticated) {
+      console.log('❌ Acceso denegado: No autenticado')
+      return next('/login')
+    }
 
-  // Redirigir usuarios autenticados lejos del login
-  if (to.meta.redirectIfAuthenticated && userStore.isAuthenticated) {
-    const role = userStore.userProfile
-    
-    switch (role) {
-      case 'ADMINISTRADOR':
-        return next('/admin')
-      case 'SUPERVISOR':
-        return next('/supervisor')
-      case 'TECNICO':
-        return next('/technician')
-      default:
-        return next('/login')
+    // Verificar roles si están definidos
+    if (to.meta.roles) {
+      const userRole = userStore.userRole
+      if (!to.meta.roles.includes(userRole)) {
+        console.log('❌ Acceso denegado: Rol insuficiente', { userRole, requiredRoles: to.meta.roles })
+        
+        // Redirigir según el rol del usuario
+        switch (userRole) {
+          case 'ADMINISTRADOR':
+            return next('/administrador')
+          case 'SUPERVISOR':
+            return next('/supervisor')
+          case 'TECNICO':
+            return next('/tecnico')
+          default:
+            return next('/login')
+        }
+      }
     }
   }
 
-  // Verificar permisos de rol
-  if (to.meta.roles && userStore.isAuthenticated) {
-    const userRole = userStore.userProfile
+  // Ruta requiere ser invitado (no logueado)
+  if (to.meta.requiresGuest && userStore.isAuthenticated) {
+    const userRole = userStore.userRole
+    console.log('🔄 Usuario ya logueado, redirigiendo según rol:', userRole)
     
-    if (!to.meta.roles.includes(userRole)) {
-      // Redirigir a la vista apropiada para su rol
-      switch (userRole) {
-        case 'ADMINISTRADOR':
-          return next('/admin')
-        case 'SUPERVISOR':
-          return next('/supervisor')
-        case 'TECNICO':
-          return next('/technician')
-        default:
-          return next('/login')
-      }
+    switch (userRole) {
+      case 'ADMINISTRADOR':
+        return next('/administrador')
+      case 'SUPERVISOR':
+        return next('/supervisor')
+      case 'TECNICO':
+        return next('/tecnico')
+      default:
+        return next('/administrador')
     }
   }
 
