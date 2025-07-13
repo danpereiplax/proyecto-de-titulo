@@ -1,349 +1,143 @@
 // frontend/src/services/adminService.js
 import apiClient from '@/utils/apiClient'
 
-export const adminService = {
-  // Dashboard Stats
+const adminService = {
+  // Estadísticas del dashboard
   async getStats() {
     try {
-      const response = await apiClient.get('/admin/stats')
-      return response.data
+      const response = await apiClient.get('/api/admin/stats')
+      return response
     } catch (error) {
-      console.error('Error fetching stats:', error)
+      console.error('Error obteniendo estadísticas:', error)
       throw error
     }
   },
 
-  async getRecentActivity() {
-    try {
-      const response = await apiClient.get('/admin/activity')
-      return response.data
-    } catch (error) {
-      console.error('Error fetching activity:', error)
-      throw error
-    }
-  },
-
-  // User Management
+  // Obtener todos los usuarios
   async getUsers() {
     try {
-      const response = await apiClient.get('/admin/users')
-      return response.data
+      const response = await apiClient.get('/api/admin/users')
+      return response
     } catch (error) {
-      console.error('Error fetching users:', error)
+      console.error('Error obteniendo usuarios:', error)
       throw error
     }
   },
 
-  async getPerfiles() {
-    try {
-      const response = await apiClient.get('/admin/perfiles')
-      return response.data
-    } catch (error) {
-      console.error('Error fetching perfiles:', error)
-      throw error
-    }
-  },
-
+  // Crear nuevo usuario
   async createUser(userData) {
     try {
-      const response = await apiClient.post('/admin/users', userData)
-      return response.data
+      const response = await apiClient.post('/api/admin/users', userData)
+      return response
     } catch (error) {
-      console.error('Error creating user:', error)
+      console.error('Error creando usuario:', error)
       throw error
     }
   },
 
-  async updateUser(rutPersona, userData) {
+  // Actualizar usuario existente
+  async updateUser(rut, userData) {
     try {
-      const response = await apiClient.put(`/admin/users/${rutPersona}`, userData)
-      return response.data
+      const response = await apiClient.put(`/api/admin/users/${rut}`, userData)
+      return response
     } catch (error) {
-      console.error('Error updating user:', error)
+      console.error('Error actualizando usuario:', error)
       throw error
     }
   },
 
-  async toggleUserStatus(rutPersona, activo) {
+  // Cambiar estado de usuario (activar/desactivar)
+  async toggleUserStatus(rut) {
     try {
-      const response = await apiClient.patch(`/admin/users/${rutPersona}/status`, { activo })
-      return response.data
+      const response = await apiClient.patch(`/api/admin/users/${rut}/toggle-status`)
+      return response
     } catch (error) {
-      console.error('Error toggling user status:', error)
+      console.error('Error cambiando estado del usuario:', error)
       throw error
     }
   },
 
-  async deleteUser(rutPersona) {
+  // Obtener actividad reciente
+  async getActivity() {
     try {
-      const response = await apiClient.delete(`/admin/users/${rutPersona}`)
-      return response.data
+      const response = await apiClient.get('/api/admin/activity')
+      return response
     } catch (error) {
-      console.error('Error deleting user:', error)
-      throw error
+      console.error('Error obteniendo actividad:', error)
+      // Retornar datos mock si falla
+      return {
+        data: [
+          {
+            id: 1,
+            description: 'Sistema iniciado correctamente',
+            timestamp: new Date().toISOString(),
+            icon: 'fas fa-power-off'
+          },
+          {
+            id: 2,
+            description: 'Usuario administrador conectado',
+            timestamp: new Date(Date.now() - 30000).toISOString(),
+            icon: 'fas fa-user-shield'
+          }
+        ]
+      }
     }
   },
 
-  // Configuration Management - Tipos de Tarea
-  async getTiposTarea() {
+  // Obtener tipos de tarea
+  async getTaskTypes() {
     try {
-      const response = await apiClient.get('/admin/tipos-tarea')
-      return response.data
+      const response = await apiClient.get('/api/admin/task-types')
+      return response
     } catch (error) {
-      console.error('Error fetching tipos tarea:', error)
+      console.error('Error obteniendo tipos de tarea:', error)
       throw error
     }
   },
 
-  async createTipoTarea(tipoData) {
+  // Crear tipo de tarea
+  async createTaskType(typeData) {
     try {
-      const response = await apiClient.post('/admin/tipos-tarea', tipoData)
-      return response.data
+      const response = await apiClient.post('/api/admin/task-types', typeData)
+      return response
     } catch (error) {
-      console.error('Error creating tipo tarea:', error)
+      console.error('Error creando tipo de tarea:', error)
       throw error
     }
   },
 
-  async updateTipoTarea(id, tipoData) {
+  // Obtener estados de tarea
+  async getTaskStates() {
     try {
-      const response = await apiClient.put(`/admin/tipos-tarea/${id}`, tipoData)
-      return response.data
+      const response = await apiClient.get('/api/admin/task-states')
+      return response
     } catch (error) {
-      console.error('Error updating tipo tarea:', error)
+      console.error('Error obteniendo estados de tarea:', error)
       throw error
     }
   },
 
-  async deleteTipoTarea(id) {
+  // Obtener áreas de cobro
+  async getBillingAreas() {
     try {
-      const response = await apiClient.delete(`/admin/tipos-tarea/${id}`)
-      return response.data
+      const response = await apiClient.get('/api/admin/billing-areas')
+      return response
     } catch (error) {
-      console.error('Error deleting tipo tarea:', error)
+      console.error('Error obteniendo áreas de cobro:', error)
       throw error
     }
   },
 
-  // Configuration Management - Estados de Tarea
-  async getEstadosTarea() {
-    try {
-      const response = await apiClient.get('/admin/estados-tarea')
-      return response.data
-    } catch (error) {
-      console.error('Error fetching estados tarea:', error)
-      throw error
-    }
-  },
-
-  async createEstadoTarea(estadoData) {
-    try {
-      const response = await apiClient.post('/admin/estados-tarea', estadoData)
-      return response.data
-    } catch (error) {
-      console.error('Error creating estado tarea:', error)
-      throw error
-    }
-  },
-
-  async updateEstadoTarea(id, estadoData) {
-    try {
-      const response = await apiClient.put(`/admin/estados-tarea/${id}`, estadoData)
-      return response.data
-    } catch (error) {
-      console.error('Error updating estado tarea:', error)
-      throw error
-    }
-  },
-
-  async deleteEstadoTarea(id) {
-    try {
-      const response = await apiClient.delete(`/admin/estados-tarea/${id}`)
-      return response.data
-    } catch (error) {
-      console.error('Error deleting estado tarea:', error)
-      throw error
-    }
-  },
-
-  // Configuration Management - Áreas de Cobro
-  async getAreasCobro() {
-    try {
-      const response = await apiClient.get('/admin/areas-cobro')
-      return response.data
-    } catch (error) {
-      console.error('Error fetching areas cobro:', error)
-      throw error
-    }
-  },
-
-  async createAreaCobro(areaData) {
-    try {
-      const response = await apiClient.post('/admin/areas-cobro', areaData)
-      return response.data
-    } catch (error) {
-      console.error('Error creating area cobro:', error)
-      throw error
-    }
-  },
-
-  async updateAreaCobro(id, areaData) {
-    try {
-      const response = await apiClient.put(`/admin/areas-cobro/${id}`, areaData)
-      return response.data
-    } catch (error) {
-      console.error('Error updating area cobro:', error)
-      throw error
-    }
-  },
-
-  async deleteAreaCobro(id) {
-    try {
-      const response = await apiClient.delete(`/admin/areas-cobro/${id}`)
-      return response.data
-    } catch (error) {
-      console.error('Error deleting area cobro:', error)
-      throw error
-    }
-  },
-
-  // Client Management
+  // Obtener clientes
   async getClients() {
     try {
-      const response = await apiClient.get('/admin/clients')
-      return response.data
+      const response = await apiClient.get('/api/admin/clients')
+      return response
     } catch (error) {
-      console.error('Error fetching clients:', error)
-      throw error
-    }
-  },
-
-  async createClient(clientData) {
-    try {
-      const response = await apiClient.post('/admin/clients', clientData)
-      return response.data
-    } catch (error) {
-      console.error('Error creating client:', error)
-      throw error
-    }
-  },
-
-  async updateClient(rutCliente, clientData) {
-    try {
-      const response = await apiClient.put(`/admin/clients/${rutCliente}`, clientData)
-      return response.data
-    } catch (error) {
-      console.error('Error updating client:', error)
-      throw error
-    }
-  },
-
-  async deleteClient(rutCliente) {
-    try {
-      const response = await apiClient.delete(`/admin/clients/${rutCliente}`)
-      return response.data
-    } catch (error) {
-      console.error('Error deleting client:', error)
-      throw error
-    }
-  },
-
-  // Reports
-  async generateReport(reportType, filters = {}) {
-    try {
-      const response = await apiClient.post(`/admin/reports/${reportType}`, filters, {
-        responseType: 'blob' // Para archivos PDF/Excel
-      })
-      return response.data
-    } catch (error) {
-      console.error('Error generating report:', error)
-      throw error
-    }
-  },
-
-  // System Configuration
-  async getSystemConfig() {
-    try {
-      const response = await apiClient.get('/admin/config')
-      return response.data
-    } catch (error) {
-      console.error('Error fetching system config:', error)
-      throw error
-    }
-  },
-
-  async updateSystemConfig(configData) {
-    try {
-      const response = await apiClient.put('/admin/config', configData)
-      return response.data
-    } catch (error) {
-      console.error('Error updating system config:', error)
-      throw error
-    }
-  },
-
-  // Bulk Operations
-  async bulkCreateUsers(usersData) {
-    try {
-      const response = await apiClient.post('/admin/users/bulk', { users: usersData })
-      return response.data
-    } catch (error) {
-      console.error('Error bulk creating users:', error)
-      throw error
-    }
-  },
-
-  async exportUsers(format = 'excel') {
-    try {
-      const response = await apiClient.get(`/admin/users/export?format=${format}`, {
-        responseType: 'blob'
-      })
-      return response.data
-    } catch (error) {
-      console.error('Error exporting users:', error)
-      throw error
-    }
-  },
-
-  // System Logs
-  async getSystemLogs(filters = {}) {
-    try {
-      const response = await apiClient.get('/admin/logs', { params: filters })
-      return response.data
-    } catch (error) {
-      console.error('Error fetching system logs:', error)
-      throw error
-    }
-  },
-
-  // Backup Operations
-  async createBackup() {
-    try {
-      const response = await apiClient.post('/admin/backup')
-      return response.data
-    } catch (error) {
-      console.error('Error creating backup:', error)
-      throw error
-    }
-  },
-
-  async getBackups() {
-    try {
-      const response = await apiClient.get('/admin/backups')
-      return response.data
-    } catch (error) {
-      console.error('Error fetching backups:', error)
-      throw error
-    }
-  },
-
-  async restoreBackup(backupId) {
-    try {
-      const response = await apiClient.post(`/admin/backup/${backupId}/restore`)
-      return response.data
-    } catch (error) {
-      console.error('Error restoring backup:', error)
+      console.error('Error obteniendo clientes:', error)
       throw error
     }
   }
 }
+
+export default adminService

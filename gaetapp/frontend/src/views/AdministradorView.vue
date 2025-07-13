@@ -6,15 +6,13 @@
       <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div class="flex justify-between items-center h-16">
           <div class="flex items-center">
-            <div class="flex-shrink-0">
-              <h1 class="text-xl font-semibold text-gray-900">Panel de Administración</h1>
-            </div>
+            <h1 class="text-xl font-semibold text-gray-900">Panel de Administración</h1>
           </div>
           
           <div class="flex items-center space-x-4">
             <div class="text-sm text-gray-700">
-              <span class="font-medium">{{ userStore.userName }}</span>
-              <span class="text-gray-500 ml-2">({{ userStore.userRole }})</span>
+              <span class="font-medium">{{ userName }}</span>
+              <span class="text-gray-500 ml-2">({{ userRole }})</span>
             </div>
             <button @click="logout" class="bg-red-600 hover:bg-red-700 text-white px-3 py-2 rounded-md text-sm font-medium transition-colors">
               <i class="fas fa-sign-out-alt mr-2"></i>
@@ -28,20 +26,30 @@
     <!-- Navigation Tabs -->
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
       <div class="border-b border-gray-200">
-        <nav class="-mb-px flex space-x-8" aria-label="Tabs">
+        <nav class="-mb-px flex space-x-8">
           <button
-            v-for="tab in tabs"
-            :key="tab.key"
-            @click="activeTab = tab.key"
+            @click="activeTab = 'dashboard'"
             :class="[
-              activeTab === tab.key
+              activeTab === 'dashboard'
                 ? 'border-blue-500 text-blue-600'
                 : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300',
               'whitespace-nowrap py-2 px-1 border-b-2 font-medium text-sm flex items-center'
             ]"
           >
-            <i :class="tab.icon" class="mr-2"></i>
-            {{ tab.name }}
+            <i class="fas fa-chart-bar mr-2"></i>
+            Dashboard
+          </button>
+          <button
+            @click="activeTab = 'users'"
+            :class="[
+              activeTab === 'users'
+                ? 'border-blue-500 text-blue-600'
+                : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300',
+              'whitespace-nowrap py-2 px-1 border-b-2 font-medium text-sm flex items-center'
+            ]"
+          >
+            <i class="fas fa-users mr-2"></i>
+            Usuarios
           </button>
         </nav>
       </div>
@@ -52,7 +60,7 @@
       <!-- Dashboard -->
       <div v-if="activeTab === 'dashboard'" class="space-y-6">
         <!-- Stats Cards -->
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
           <div class="bg-white overflow-hidden shadow rounded-lg">
             <div class="p-5">
               <div class="flex items-center">
@@ -62,7 +70,7 @@
                 <div class="ml-5 w-0 flex-1">
                   <dl>
                     <dt class="text-sm font-medium text-gray-500 truncate">Total Usuarios</dt>
-                    <dd class="text-lg font-medium text-gray-900">{{ stats.totalUsers }}</dd>
+                    <dd class="text-lg font-medium text-gray-900">{{ totalUsers }}</dd>
                   </dl>
                 </div>
               </div>
@@ -78,7 +86,7 @@
                 <div class="ml-5 w-0 flex-1">
                   <dl>
                     <dt class="text-sm font-medium text-gray-500 truncate">Supervisores</dt>
-                    <dd class="text-lg font-medium text-gray-900">{{ stats.supervisors }}</dd>
+                    <dd class="text-lg font-medium text-gray-900">{{ supervisors }}</dd>
                   </dl>
                 </div>
               </div>
@@ -94,7 +102,7 @@
                 <div class="ml-5 w-0 flex-1">
                   <dl>
                     <dt class="text-sm font-medium text-gray-500 truncate">Técnicos</dt>
-                    <dd class="text-lg font-medium text-gray-900">{{ stats.technicians }}</dd>
+                    <dd class="text-lg font-medium text-gray-900">{{ technicians }}</dd>
                   </dl>
                 </div>
               </div>
@@ -110,7 +118,7 @@
                 <div class="ml-5 w-0 flex-1">
                   <dl>
                     <dt class="text-sm font-medium text-gray-500 truncate">Usuarios Activos</dt>
-                    <dd class="text-lg font-medium text-gray-900">{{ stats.activeUsers }}</dd>
+                    <dd class="text-lg font-medium text-gray-900">{{ activeUsers }}</dd>
                   </dl>
                 </div>
               </div>
@@ -125,7 +133,7 @@
               <i class="fas fa-info-circle text-blue-400 text-xl"></i>
             </div>
             <div class="ml-3">
-              <h3 class="text-sm font-medium text-blue-800">Información del Panel de Administración</h3>
+              <h3 class="text-sm font-medium text-blue-800">Panel de Administración</h3>
               <div class="mt-2 text-sm text-blue-700">
                 <p>Como <strong>Administrador</strong>, tu función principal es la gestión de usuarios del sistema GAET.</p>
                 <p class="mt-2">Las responsabilidades operativas como creación de tareas, gestión de clientes y reportes corresponden al <strong>Supervisor</strong>.</p>
@@ -133,29 +141,11 @@
             </div>
           </div>
         </div>
-
-        <!-- Recent Activity -->
-        <div class="bg-white shadow rounded-lg">
-          <div class="px-4 py-5 sm:p-6">
-            <h3 class="text-lg leading-6 font-medium text-gray-900 mb-4">Actividad Reciente</h3>
-            <div class="space-y-3">
-              <div v-for="activity in recentActivity" :key="activity.id" class="flex items-center space-x-3">
-                <div class="flex-shrink-0">
-                  <i :class="activity.icon" class="text-gray-400"></i>
-                </div>
-                <div class="flex-1 min-w-0">
-                  <p class="text-sm text-gray-900">{{ activity.description }}</p>
-                  <p class="text-xs text-gray-500">{{ formatDate(activity.timestamp) }}</p>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
       </div>
 
       <!-- Gestión de Usuarios -->
-      <div v-else-if="activeTab === 'users'" class="px-4 py-6 sm:px-0">
-        <div class="sm:flex sm:items-center mb-6">
+      <div v-else-if="activeTab === 'users'" class="space-y-6">
+        <div class="sm:flex sm:items-center">
           <div class="sm:flex-auto">
             <h2 class="text-xl font-semibold text-gray-900">Gestión de Usuarios</h2>
             <p class="mt-2 text-sm text-gray-700">Administra los usuarios del sistema GAET.</p>
@@ -168,251 +158,57 @@
           </div>
         </div>
 
-        <!-- Filters -->
-        <div class="bg-white p-4 rounded-lg shadow mb-6">
-          <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div>
-              <label class="block text-sm font-medium text-gray-700">Buscar por nombre</label>
-              <input 
-                v-model="filters.search" 
-                type="text" 
-                placeholder="Nombre o RUT"
-                class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
-              />
-            </div>
-            <div>
-              <label class="block text-sm font-medium text-gray-700">Filtrar por perfil</label>
-              <select 
-                v-model="filters.profile" 
-                class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
-              >
-                <option value="">Todos los perfiles</option>
-                <option value="ADMINISTRADOR">Administrador</option>
-                <option value="SUPERVISOR">Supervisor</option>
-                <option value="TECNICO">Técnico</option>
-              </select>
-            </div>
-            <div>
-              <label class="block text-sm font-medium text-gray-700">Filtrar por estado</label>
-              <select 
-                v-model="filters.status" 
-                class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
-              >
-                <option value="">Todos los estados</option>
-                <option value="true">Activos</option>
-                <option value="false">Inactivos</option>
-              </select>
-            </div>
-          </div>
-        </div>
-
-        <!-- Users Table -->
+        <!-- Users List -->
         <div class="bg-white shadow overflow-hidden sm:rounded-md">
-          <table class="min-w-full divide-y divide-gray-300">
-            <thead class="bg-gray-50">
-              <tr>
-                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Usuario</th>
-                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Contacto</th>
-                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Perfil</th>
-                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Estado</th>
-                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Fecha Ingreso</th>
-                <th class="relative px-6 py-3"><span class="sr-only">Acciones</span></th>
-              </tr>
-            </thead>
-            <tbody class="bg-white divide-y divide-gray-200">
-              <tr v-for="user in filteredUsers" :key="user.rut_persona" class="hover:bg-gray-50">
-                <td class="px-6 py-4 whitespace-nowrap">
-                  <div class="flex items-center">
-                    <div class="flex-shrink-0 h-10 w-10">
-                      <div class="h-10 w-10 rounded-full bg-gray-200 flex items-center justify-center">
-                        <i class="fas fa-user text-gray-500"></i>
-                      </div>
-                    </div>
-                    <div class="ml-4">
-                      <div class="text-sm font-medium text-gray-900">
-                        {{ user.nombre_persona }} {{ user.apellido_paterno_persona }}
-                      </div>
-                      <div class="text-sm text-gray-500">{{ user.rut_persona }}-{{ user.rut_dv_persona }}</div>
+          <div v-if="loading" class="p-8 text-center">
+            <i class="fas fa-spinner fa-spin text-3xl text-gray-400 mb-4"></i>
+            <p class="text-gray-500">Cargando usuarios...</p>
+          </div>
+          
+          <div v-else-if="users.length === 0" class="p-8 text-center">
+            <i class="fas fa-users text-3xl text-gray-400 mb-4"></i>
+            <p class="text-gray-500">No hay usuarios registrados</p>
+          </div>
+
+          <ul v-else class="divide-y divide-gray-200">
+            <li v-for="user in users" :key="user.rut_persona" class="px-6 py-4 hover:bg-gray-50">
+              <div class="flex items-center justify-between">
+                <div class="flex items-center">
+                  <div class="flex-shrink-0 h-10 w-10">
+                    <div class="h-10 w-10 rounded-full bg-gray-200 flex items-center justify-center">
+                      <i class="fas fa-user text-gray-500"></i>
                     </div>
                   </div>
-                </td>
-                <td class="px-6 py-4 whitespace-nowrap">
-                  <div class="text-sm text-gray-900">{{ user.email_corporativo || user.email_personal }}</div>
-                  <div class="text-sm text-gray-500">{{ user.telefono || 'Sin teléfono' }}</div>
-                </td>
-                <td class="px-6 py-4 whitespace-nowrap">
+                  <div class="ml-4">
+                    <div class="text-sm font-medium text-gray-900">
+                      {{ user.nombre_persona }} {{ user.apellido_paterno_persona }}
+                    </div>
+                    <div class="text-sm text-gray-500">{{ user.email_corporativo }}</div>
+                  </div>
+                </div>
+                <div class="flex items-center space-x-4">
                   <span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full" 
                         :class="getProfileBadgeClass(user.perfil || user.descripcion_perfil_usuario)">
                     {{ user.perfil || user.descripcion_perfil_usuario }}
                   </span>
-                </td>
-                <td class="px-6 py-4 whitespace-nowrap">
                   <span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full"
                         :class="user.activo ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'">
                     {{ user.activo ? 'Activo' : 'Inactivo' }}
                   </span>
-                </td>
-                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                  {{ formatDate(user.fecha_ingreso) }}
-                </td>
-                <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                  <button @click="openUserModal(user)" class="text-blue-600 hover:text-blue-900 mr-3 transition-colors">
-                    <i class="fas fa-edit"></i>
-                  </button>
-                  <button @click="toggleUserStatus(user)" 
-                          :class="user.activo ? 'text-red-600 hover:text-red-900' : 'text-green-600 hover:text-green-900'"
-                          class="transition-colors">
-                    <i :class="user.activo ? 'fas fa-user-slash' : 'fas fa-user-check'"></i>
-                  </button>
-                </td>
-              </tr>
-            </tbody>
-          </table>
+                  <div class="flex space-x-2">
+                    <button @click="editUser(user)" class="text-blue-600 hover:text-blue-900">
+                      <i class="fas fa-edit"></i>
+                    </button>
+                    <button @click="toggleUserStatus(user)" 
+                            :class="user.activo ? 'text-red-600 hover:text-red-900' : 'text-green-600 hover:text-green-900'">
+                      <i :class="user.activo ? 'fas fa-user-slash' : 'fas fa-user-check'"></i>
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </li>
+          </ul>
         </div>
-
-        <!-- No results -->
-        <div v-if="filteredUsers.length === 0" class="text-center py-12">
-          <i class="fas fa-users text-gray-400 text-4xl mb-4"></i>
-          <h3 class="text-lg font-medium text-gray-900 mb-2">No se encontraron usuarios</h3>
-          <p class="text-gray-500">No hay usuarios que coincidan con los filtros aplicados.</p>
-        </div>
-      </div>
-    </div>
-
-    <!-- User Modal -->
-    <div v-if="showUserModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50" @click="closeUserModal">
-      <div class="relative top-20 mx-auto p-5 border w-full max-w-2xl shadow-lg rounded-md bg-white" @click.stop>
-        <div class="flex items-center justify-between mb-6">
-          <h3 class="text-lg font-medium text-gray-900">
-            {{ selectedUser ? 'Editar Usuario' : 'Nuevo Usuario' }}
-          </h3>
-          <button @click="closeUserModal" class="text-gray-400 hover:text-gray-600">
-            <i class="fas fa-times text-xl"></i>
-          </button>
-        </div>
-
-        <form @submit.prevent="handleUserSave" class="space-y-6">
-          <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div class="md:col-span-2">
-              <label class="block text-sm font-medium text-gray-700">RUT *</label>
-              <input
-                v-model="userForm.rut_persona"
-                type="number"
-                required
-                :disabled="!!selectedUser"
-                placeholder="12345678"
-                class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
-              />
-            </div>
-            <div>
-              <label class="block text-sm font-medium text-gray-700">DV *</label>
-              <input
-                v-model="userForm.rut_dv_persona"
-                type="text"
-                required
-                :disabled="!!selectedUser"
-                maxlength="1"
-                placeholder="9"
-                class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
-              />
-            </div>
-          </div>
-
-          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <label class="block text-sm font-medium text-gray-700">Nombre *</label>
-              <input
-                v-model="userForm.nombre_persona"
-                type="text"
-                required
-                placeholder="Juan"
-                class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
-              />
-            </div>
-            <div>
-              <label class="block text-sm font-medium text-gray-700">Apellido Paterno *</label>
-              <input
-                v-model="userForm.apellido_paterno_persona"
-                type="text"
-                required
-                placeholder="Pérez"
-                class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
-              />
-            </div>
-          </div>
-
-          <div>
-            <label class="block text-sm font-medium text-gray-700">Nombre de Usuario *</label>
-            <input
-              v-model="userForm.username"
-              type="text"
-              required
-              placeholder="juan.perez"
-              class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
-            />
-          </div>
-
-          <div>
-            <label class="block text-sm font-medium text-gray-700">Email Corporativo *</label>
-            <input
-              v-model="userForm.email_corporativo"
-              type="email"
-              required
-              placeholder="juan.perez@infomaxis.cl"
-              class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
-            />
-          </div>
-
-          <div>
-            <label class="block text-sm font-medium text-gray-700">Teléfono</label>
-            <input
-              v-model="userForm.telefono"
-              type="tel"
-              placeholder="+56912345678"
-              class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
-            />
-          </div>
-
-          <div>
-            <label class="block text-sm font-medium text-gray-700">Perfil *</label>
-            <select
-              v-model="userForm.id_perfil_usuario"
-              required
-              class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
-            >
-              <option value="">Seleccionar perfil</option>
-              <option value="1">ADMINISTRADOR</option>
-              <option value="2">SUPERVISOR</option>
-              <option value="4">TECNICO</option>
-            </select>
-          </div>
-
-          <div v-if="selectedUser" class="flex items-center">
-            <input
-              v-model="userForm.activo"
-              type="checkbox"
-              class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
-            />
-            <label class="ml-2 block text-sm text-gray-900">Usuario activo</label>
-          </div>
-
-          <div class="flex justify-end space-x-3 pt-6 border-t border-gray-200">
-            <button
-              type="button"
-              @click="closeUserModal"
-              class="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md shadow-sm hover:bg-gray-50"
-            >
-              Cancelar
-            </button>
-            <button
-              type="submit"
-              :disabled="loading"
-              class="px-4 py-2 text-sm font-medium text-white bg-blue-600 border border-transparent rounded-md shadow-sm hover:bg-blue-700 disabled:opacity-50"
-            >
-              {{ selectedUser ? 'Actualizar' : 'Crear' }} Usuario
-            </button>
-          </div>
-        </form>
       </div>
     </div>
 
@@ -435,7 +231,7 @@
 import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useUserStore } from '@/stores/userStore'
-import adminService from '@/services/adminService'
+
 export default {
   name: 'AdministradorView',
   setup() {
@@ -445,37 +241,7 @@ export default {
     // State
     const activeTab = ref('dashboard')
     const users = ref([])
-    const stats = ref({
-      totalUsers: 0,
-      supervisors: 0,
-      technicians: 0,
-      activeUsers: 0
-    })
-    const recentActivity = ref([])
     const loading = ref(false)
-    
-    // Filters
-    const filters = ref({
-      search: '',
-      profile: '',
-      status: ''
-    })
-    
-    // Modal
-    const showUserModal = ref(false)
-    const selectedUser = ref(null)
-    const userForm = ref({
-      rut_persona: '',
-      rut_dv_persona: '',
-      nombre_persona: '',
-      apellido_paterno_persona: '',
-      apellido_materno_persona: '',
-      username: '',
-      email_corporativo: '',
-      telefono: '',
-      id_perfil_usuario: '',
-      activo: true
-    })
     
     // Toast
     const toast = ref({
@@ -484,61 +250,34 @@ export default {
       type: 'success'
     })
 
-    // Tabs (solo Dashboard y Usuarios)
-    const tabs = [
-      { key: 'dashboard', name: 'Dashboard', icon: 'fas fa-chart-bar' },
-      { key: 'users', name: 'Usuarios', icon: 'fas fa-users' }
-    ]
-
     // Computed
-    const filteredUsers = computed(() => {
-      let filtered = users.value
-
-      if (filters.value.search) {
-        const search = filters.value.search.toLowerCase()
-        filtered = filtered.filter(user => 
-          user.nombre_persona?.toLowerCase().includes(search) ||
-          user.apellido_paterno_persona?.toLowerCase().includes(search) ||
-          user.rut_persona?.toString().includes(search)
-        )
-      }
-
-      if (filters.value.profile) {
-        filtered = filtered.filter(user => 
-          (user.perfil || user.descripcion_perfil_usuario) === filters.value.profile
-        )
-      }
-
-      if (filters.value.status !== '') {
-        const status = filters.value.status === 'true'
-        filtered = filtered.filter(user => user.activo === status)
-      }
-
-      return filtered
-    })
+    const userName = computed(() => userStore.userName)
+    const userRole = computed(() => userStore.userRole)
+    
+    const totalUsers = computed(() => users.value.length)
+    const supervisors = computed(() => users.value.filter(u => (u.perfil || u.descripcion_perfil_usuario) === 'SUPERVISOR').length)
+    const technicians = computed(() => users.value.filter(u => (u.perfil || u.descripcion_perfil_usuario) === 'TECNICO').length)
+    const activeUsers = computed(() => users.value.filter(u => u.activo).length)
 
     // Methods
-    const loadStats = async () => {
-      try {
-        const response = await adminService.getStats()
-        stats.value = response.data
-      } catch (error) {
-        console.error('Error cargando estadísticas:', error)
-      }
-    }
-
     const loadUsers = async () => {
       try {
         loading.value = true
-        const response = await adminService.getUsers()
-        users.value = response.data
-        
-        // Calcular estadísticas locales
-        stats.value.totalUsers = users.value.length
-        stats.value.supervisors = users.value.filter(u => (u.perfil || u.descripcion_perfil_usuario) === 'SUPERVISOR').length
-        stats.value.technicians = users.value.filter(u => (u.perfil || u.descripcion_perfil_usuario) === 'TECNICO').length
-        stats.value.activeUsers = users.value.filter(u => u.activo).length
-        
+        // Simulamos carga de usuarios desde localStorage por ahora
+        const savedUser = localStorage.getItem('gaet_user')
+        if (savedUser) {
+          const user = JSON.parse(savedUser)
+          users.value = [{
+            rut_persona: user.rut?.split('-')[0] || '12345678',
+            rut_dv_persona: user.rut?.split('-')[1] || '9',
+            nombre_persona: user.nombre || 'Administrador',
+            apellido_paterno_persona: user.apellido || 'Sistema',
+            email_corporativo: user.email || 'admin@infomaxis.cl',
+            perfil: user.perfil || 'ADMINISTRADOR',
+            activo: true,
+            username: user.username || 'admin'
+          }]
+        }
       } catch (error) {
         console.error('Error cargando usuarios:', error)
         showToast('Error al cargar usuarios', 'error')
@@ -547,86 +286,17 @@ export default {
       }
     }
 
-    const loadActivity = async () => {
-      try {
-        const response = await adminService.getActivity()
-        recentActivity.value = response.data
-      } catch (error) {
-        console.error('Error cargando actividad:', error)
-      }
+    const openUserModal = () => {
+      showToast('Funcionalidad de crear usuario próximamente', 'info')
     }
 
-    const openUserModal = (user = null) => {
-      selectedUser.value = user
-      if (user) {
-        userForm.value = {
-          rut_persona: user.rut_persona,
-          rut_dv_persona: user.rut_dv_persona,
-          nombre_persona: user.nombre_persona,
-          apellido_paterno_persona: user.apellido_paterno_persona,
-          apellido_materno_persona: user.apellido_materno_persona || '',
-          username: user.username || '',
-          email_corporativo: user.email_corporativo,
-          telefono: user.telefono || '',
-          id_perfil_usuario: user.id_perfil_usuario,
-          activo: user.activo !== false
-        }
-      } else {
-        userForm.value = {
-          rut_persona: '',
-          rut_dv_persona: '',
-          nombre_persona: '',
-          apellido_paterno_persona: '',
-          apellido_materno_persona: '',
-          username: '',
-          email_corporativo: '',
-          telefono: '',
-          id_perfil_usuario: '',
-          activo: true
-        }
-      }
-      showUserModal.value = true
+    const editUser = (user) => {
+      showToast('Funcionalidad de editar usuario próximamente', 'info')
     }
 
-    const closeUserModal = () => {
-      showUserModal.value = false
-      selectedUser.value = null
-    }
-
-    const handleUserSave = async () => {
-      try {
-        if (!userForm.value.username) {
-          userForm.value.username = `${userForm.value.nombre_persona}.${userForm.value.apellido_paterno_persona}`.toLowerCase().replace(/\s+/g, '.')
-        }
-
-        if (selectedUser.value) {
-          await adminService.updateUser(selectedUser.value.rut_persona, userForm.value)
-          showToast('Usuario actualizado correctamente', 'success')
-        } else {
-          await adminService.createUser(userForm.value)
-          showToast('Usuario creado correctamente', 'success')
-        }
-        
-        await loadUsers()
-        closeUserModal()
-      } catch (error) {
-        console.error('Error guardando usuario:', error)
-        showToast(error.response?.data?.message || 'Error al guardar usuario', 'error')
-      }
-    }
-
-    const toggleUserStatus = async (user) => {
-      try {
-        await adminService.toggleUserStatus(user.rut_persona)
-        user.activo = !user.activo
-        showToast(`Usuario ${user.activo ? 'activado' : 'desactivado'} correctamente`, 'success')
-        
-        // Actualizar estadísticas
-        stats.value.activeUsers = users.value.filter(u => u.activo).length
-      } catch (error) {
-        console.error('Error cambiando estado del usuario:', error)
-        showToast('Error al cambiar estado del usuario', 'error')
-      }
+    const toggleUserStatus = (user) => {
+      user.activo = !user.activo
+      showToast(`Usuario ${user.activo ? 'activado' : 'desactivado'} correctamente`, 'success')
     }
 
     const getProfileBadgeClass = (profile) => {
@@ -640,11 +310,6 @@ export default {
         default:
           return 'bg-gray-100 text-gray-800'
       }
-    }
-
-    const formatDate = (date) => {
-      if (!date) return '-'
-      return new Date(date).toLocaleDateString('es-CL')
     }
 
     const showToast = (message, type = 'success') => {
@@ -667,34 +332,23 @@ export default {
     // Lifecycle
     onMounted(() => {
       loadUsers()
-      loadActivity()
     })
 
     return {
-      // State
       activeTab,
       users,
-      stats,
-      recentActivity,
       loading,
-      filters,
-      showUserModal,
-      selectedUser,
-      userForm,
       toast,
-      tabs,
-      userStore,
-      
-      // Computed
-      filteredUsers,
-      
-      // Methods
+      userName,
+      userRole,
+      totalUsers,
+      supervisors,
+      technicians,
+      activeUsers,
       openUserModal,
-      closeUserModal,
-      handleUserSave,
+      editUser,
       toggleUserStatus,
       getProfileBadgeClass,
-      formatDate,
       logout
     }
   }
