@@ -29,6 +29,6 @@ GAET (Gestión, Administración, Ejecución y Tareas) es una aplicación web res
 /GAET
  ├── frontend/    # Código fuente Vue.js (SPA)
  ├── backend/     # API Node.js + Express
- ├── database/    # Scripts SQL, diagramas DER y documentación de BD(en construccion)
+ ├── database/    # Scripts SQL, diagramas DER y documentación de BD
  ├── docs/        # Documentación técnica, diagramas, manual de uso (en construccion)
  └── README.md    # Este archivos
