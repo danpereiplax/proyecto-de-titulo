@@ -1,124 +1,164 @@
-<!-- frontend/src/views/AdministradorView.vue -->
 <template>
   <div class="min-h-screen bg-gray-50">
     <!-- Header -->
-    <header class="bg-white shadow-sm border-b border-gray-200">
+    <div class="bg-white shadow">
       <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div class="flex justify-between items-center h-16">
-          <div class="flex items-center">
-            <h1 class="text-xl font-semibold text-gray-900">Panel de Administración</h1>
+        <div class="flex justify-between items-center py-6">
+          <div class="flex items-center space-x-4">
+            <div class="flex-shrink-0">
+              <!-- Logo genérico con SVG -->
+              <div class="h-10 w-10 bg-blue-600 rounded-lg flex items-center justify-center">
+                <svg class="h-6 w-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path>
+                </svg>
+              </div>
+            </div>
+            <div>
+              <h1 class="text-2xl font-bold text-gray-900">Panel de Administración</h1>
+              <p class="text-sm text-gray-500">Sistema GAET - Gestión de Usuarios</p>
+            </div>
           </div>
           
           <div class="flex items-center space-x-4">
-            <div class="text-sm text-gray-700">
-              <span class="font-medium">{{ userName }}</span>
-              <span class="text-gray-500 ml-2">({{ userRole }})</span>
+            <!-- Información del usuario -->
+            <div class="text-right">
+              <p class="text-sm font-medium text-gray-900">{{ userStore.userName }}</p>
+              <p class="text-xs text-gray-500">{{ userStore.userRole }}</p>
             </div>
-            <button @click="logout" class="bg-red-600 hover:bg-red-700 text-white px-3 py-2 rounded-md text-sm font-medium transition-colors">
-              <i class="fas fa-sign-out-alt mr-2"></i>
-              Cerrar Sesión
-            </button>
+            
+            <!-- Menú de usuario -->
+            <div class="relative">
+              <button 
+                @click="showUserMenu = !showUserMenu"
+                class="flex items-center text-sm rounded-full focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+              >
+                <div class="h-8 w-8 rounded-full bg-blue-600 flex items-center justify-center">
+                  <span class="text-sm font-medium text-white">
+                    {{ userStore.userName.split(' ').map(n => n[0]).join('').toUpperCase() }}
+                  </span>
+                </div>
+              </button>
+              
+              <!-- Dropdown menu -->
+              <div v-if="showUserMenu" class="origin-top-right absolute right-0 mt-2 w-48 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 z-50">
+                <div class="py-1">
+                  <button 
+                    @click="openChangePassword"
+                    class="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                  >
+                    <svg class="mr-3 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-3a1 1 0 011-1h2.586l6.414-6.414a6 6 0 015.743-7.743z"></path>
+                    </svg>
+                    Cambiar Contraseña
+                  </button>
+                  <button 
+                    @click="logout"
+                    class="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                  >
+                    <svg class="mr-3 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path>
+                    </svg>
+                    Cerrar Sesión
+                  </button>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       </div>
-    </header>
+    </div>
 
-    <!-- Navigation Tabs -->
+    <!-- Navegación por tabs -->
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
       <div class="border-b border-gray-200">
         <nav class="-mb-px flex space-x-8">
           <button
             @click="activeTab = 'dashboard'"
             :class="[
+              'whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm',
               activeTab === 'dashboard'
                 ? 'border-blue-500 text-blue-600'
-                : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300',
-              'whitespace-nowrap py-2 px-1 border-b-2 font-medium text-sm flex items-center'
+                : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
             ]"
           >
-            <i class="fas fa-chart-bar mr-2"></i>
             Dashboard
           </button>
           <button
             @click="activeTab = 'users'"
             :class="[
+              'whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm',
               activeTab === 'users'
                 ? 'border-blue-500 text-blue-600'
-                : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300',
-              'whitespace-nowrap py-2 px-1 border-b-2 font-medium text-sm flex items-center'
+                : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
             ]"
           >
-            <i class="fas fa-users mr-2"></i>
-            Usuarios
+            Gestión de Usuarios
+            <span class="bg-gray-100 text-gray-600 py-0.5 px-2.5 rounded-full text-xs font-medium ml-2">
+              {{ filteredUsers.length }}
+            </span>
           </button>
         </nav>
       </div>
     </div>
 
-    <!-- Content -->
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-      <!-- Dashboard -->
+    <!-- Contenido Principal -->
+    <div class="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
+      
+      <!-- Tab: Dashboard -->
       <div v-if="activeTab === 'dashboard'" class="space-y-6">
-        <!-- Stats Cards -->
-        <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
+        <!-- Dashboard Stats -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <!-- Total Usuarios -->
           <div class="bg-white overflow-hidden shadow rounded-lg">
             <div class="p-5">
               <div class="flex items-center">
                 <div class="flex-shrink-0">
-                  <i class="fas fa-users text-blue-500 text-2xl"></i>
+                  <svg class="h-8 w-8 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0z"></path>
+                  </svg>
                 </div>
                 <div class="ml-5 w-0 flex-1">
                   <dl>
                     <dt class="text-sm font-medium text-gray-500 truncate">Total Usuarios</dt>
-                    <dd class="text-lg font-medium text-gray-900">{{ totalUsers }}</dd>
+                    <dd class="text-3xl font-bold text-gray-900">{{ statistics.totalUsers || 0 }}</dd>
                   </dl>
                 </div>
               </div>
             </div>
           </div>
 
+          <!-- Usuarios Activos -->
           <div class="bg-white overflow-hidden shadow rounded-lg">
             <div class="p-5">
               <div class="flex items-center">
                 <div class="flex-shrink-0">
-                  <i class="fas fa-user-tie text-green-500 text-2xl"></i>
-                </div>
-                <div class="ml-5 w-0 flex-1">
-                  <dl>
-                    <dt class="text-sm font-medium text-gray-500 truncate">Supervisores</dt>
-                    <dd class="text-lg font-medium text-gray-900">{{ supervisors }}</dd>
-                  </dl>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <div class="bg-white overflow-hidden shadow rounded-lg">
-            <div class="p-5">
-              <div class="flex items-center">
-                <div class="flex-shrink-0">
-                  <i class="fas fa-tools text-yellow-500 text-2xl"></i>
-                </div>
-                <div class="ml-5 w-0 flex-1">
-                  <dl>
-                    <dt class="text-sm font-medium text-gray-500 truncate">Técnicos</dt>
-                    <dd class="text-lg font-medium text-gray-900">{{ technicians }}</dd>
-                  </dl>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <div class="bg-white overflow-hidden shadow rounded-lg">
-            <div class="p-5">
-              <div class="flex items-center">
-                <div class="flex-shrink-0">
-                  <i class="fas fa-user-check text-purple-500 text-2xl"></i>
+                  <svg class="h-8 w-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                  </svg>
                 </div>
                 <div class="ml-5 w-0 flex-1">
                   <dl>
                     <dt class="text-sm font-medium text-gray-500 truncate">Usuarios Activos</dt>
-                    <dd class="text-lg font-medium text-gray-900">{{ activeUsers }}</dd>
+                    <dd class="text-3xl font-bold text-gray-900">{{ statistics.activeUsers || 0 }}</dd>
+                  </dl>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Nuevos este mes -->
+          <div class="bg-white overflow-hidden shadow rounded-lg">
+            <div class="p-5">
+              <div class="flex items-center">
+                <div class="flex-shrink-0">
+                  <svg class="h-8 w-8 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"></path>
+                  </svg>
+                </div>
+                <div class="ml-5 w-0 flex-1">
+                  <dl>
+                    <dt class="text-sm font-medium text-gray-500 truncate">Nuevos este mes</dt>
+                    <dd class="text-3xl font-bold text-gray-900">{{ statistics.newUsersThisMonth || 0 }}</dd>
                   </dl>
                 </div>
               </div>
@@ -128,347 +168,306 @@
 
         <!-- Info Card -->
         <div class="bg-blue-50 border border-blue-200 rounded-lg p-6">
-          <div class="flex items-start">
+          <div class="flex">
             <div class="flex-shrink-0">
-              <i class="fas fa-info-circle text-blue-400 text-xl"></i>
+              <svg class="h-6 w-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+              </svg>
             </div>
             <div class="ml-3">
-              <h3 class="text-sm font-medium text-blue-800">Panel de Administración</h3>
+              <h3 class="text-sm font-medium text-blue-800">
+                Panel de Administrador
+              </h3>
               <div class="mt-2 text-sm text-blue-700">
-                <p>Como <strong>Administrador</strong>, tu función principal es la gestión de usuarios del sistema GAET.</p>
-                <p class="mt-2">Las responsabilidades operativas como creación de tareas, gestión de clientes y reportes corresponden al <strong>Supervisor</strong>.</p>
+                <p>
+                  Como administrador, tu función principal es gestionar usuarios del sistema. 
+                  La gestión operativa (tareas, clientes, reportes) está disponible en el panel de supervisor.
+                </p>
               </div>
             </div>
           </div>
         </div>
       </div>
 
-      <!-- Gestión de Usuarios -->
-      <div v-else-if="activeTab === 'users'" class="space-y-6">
-        <div class="sm:flex sm:items-center">
-          <div class="sm:flex-auto">
-            <h2 class="text-xl font-semibold text-gray-900">Gestión de Usuarios</h2>
-            <p class="mt-2 text-sm text-gray-700">Administra los usuarios del sistema GAET.</p>
-          </div>
-          <div class="mt-4 sm:mt-0 sm:ml-16 sm:flex-none">
-            <button @click="openUserModal()" class="inline-flex items-center justify-center rounded-md border border-transparent bg-blue-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-blue-700 transition-colors">
-              <i class="fas fa-plus mr-2"></i>
-              Nuevo Usuario
+      <!-- Tab: Gestión de Usuarios -->
+      <div v-if="activeTab === 'users'" class="bg-white shadow rounded-lg">
+        <div class="px-4 py-5 sm:p-6">
+          <!-- Header de la tabla -->
+          <div class="flex justify-between items-center mb-6">
+            <div>
+              <h3 class="text-lg leading-6 font-medium text-gray-900">Gestión de Usuarios</h3>
+              <p class="mt-1 text-sm text-gray-500">
+                Administra los usuarios del sistema GAET
+              </p>
+            </div>
+            
+            <button 
+              @click="openCreateUser"
+              class="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+            >
+              <svg class="-ml-1 mr-2 h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
+              </svg>
+              Crear Usuario
             </button>
           </div>
-        </div>
 
-        <!-- Filters -->
-        <div class="bg-white p-4 rounded-lg shadow">
-          <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div>
-              <label class="block text-sm font-medium text-gray-700">Buscar por nombre</label>
+          <!-- Filtros -->
+          <div class="mb-4 flex flex-col sm:flex-row gap-4">
+            <div class="flex-1">
               <input 
-                v-model="filters.search" 
-                type="text" 
-                placeholder="Nombre, RUT o email"
-                class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
-              />
-            </div>
-            <div>
-              <label class="block text-sm font-medium text-gray-700">Filtrar por perfil</label>
-              <select 
-                v-model="filters.profile" 
-                class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
+                v-model="searchTerm"
+                type="text"
+                placeholder="Buscar por nombre, RUT o email..."
+                class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
               >
-                <option value="">Todos los perfiles</option>
+            </div>
+            <div class="sm:w-48">
+              <select 
+                v-model="filterRole"
+                class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+              >
+                <option value="">Todos los roles</option>
                 <option value="ADMINISTRADOR">Administrador</option>
                 <option value="SUPERVISOR">Supervisor</option>
                 <option value="TECNICO">Técnico</option>
               </select>
             </div>
-            <div>
-              <label class="block text-sm font-medium text-gray-700">Filtrar por estado</label>
+            <div class="sm:w-32">
               <select 
-                v-model="filters.status" 
-                class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
+                v-model="filterStatus"
+                class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
               >
-                <option value="">Todos los estados</option>
+                <option value="">Todos</option>
                 <option value="true">Activos</option>
                 <option value="false">Inactivos</option>
               </select>
             </div>
           </div>
-        </div>
 
-        <!-- Users Table -->
-        <div class="bg-white shadow overflow-hidden sm:rounded-md">
-          <div v-if="loading" class="p-8 text-center">
-            <i class="fas fa-spinner fa-spin text-3xl text-gray-400 mb-4"></i>
-            <p class="text-gray-500">Cargando usuarios...</p>
+          <!-- Loading State -->
+          <div v-if="loading" class="text-center py-12">
+            <svg class="animate-spin -ml-1 mr-3 h-8 w-8 text-blue-600 mx-auto" fill="none" viewBox="0 0 24 24">
+              <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+              <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+            </svg>
+            <p class="text-gray-500 mt-2">Cargando usuarios...</p>
           </div>
-          
-          <div v-else>
-            <table class="min-w-full divide-y divide-gray-300">
+
+          <!-- Tabla de usuarios -->
+          <div v-else class="overflow-x-auto">
+            <table class="min-w-full divide-y divide-gray-200">
               <thead class="bg-gray-50">
                 <tr>
-                  <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Usuario</th>
-                  <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Contacto</th>
-                  <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Perfil</th>
-                  <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Estado</th>
-                  <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Fecha Ingreso</th>
-                  <th class="relative px-6 py-3"><span class="sr-only">Acciones</span></th>
+                  <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Usuario
+                  </th>
+                  <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    RUT
+                  </th>
+                  <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Rol
+                  </th>
+                  <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Estado
+                  </th>
+                  <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Contraseña
+                  </th>
+                  <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Acciones
+                  </th>
                 </tr>
               </thead>
               <tbody class="bg-white divide-y divide-gray-200">
-                <tr v-for="user in filteredUsers" :key="user.rut_persona || user.id" class="hover:bg-gray-50">
+                <tr v-for="user in filteredUsers" :key="user.rut_persona" class="hover:bg-gray-50">
+                  <!-- Usuario -->
                   <td class="px-6 py-4 whitespace-nowrap">
                     <div class="flex items-center">
-                      <div class="flex-shrink-0 h-10 w-10">
-                        <div class="h-10 w-10 rounded-full bg-gray-200 flex items-center justify-center">
-                          <i class="fas fa-user text-gray-500"></i>
+                      <div class="h-10 w-10 flex-shrink-0">
+                        <div class="h-10 w-10 rounded-full bg-gray-300 flex items-center justify-center">
+                          <span class="text-sm font-medium text-gray-700">
+                            {{ `${user.nombre_persona[0]}${user.apellido_paterno_persona[0]}`.toUpperCase() }}
+                          </span>
                         </div>
                       </div>
                       <div class="ml-4">
                         <div class="text-sm font-medium text-gray-900">
-                          {{ user.nombre_persona || user.nombre }} {{ user.apellido_paterno_persona || user.apellido }}
+                          {{ user.nombre_persona }} {{ user.apellido_paterno_persona }}
                         </div>
-                        <div class="text-sm text-gray-500">
-                          {{ user.username }}
-                        </div>
+                        <div class="text-sm text-gray-500">{{ user.email_corporativo }}</div>
+                        <div class="text-xs text-gray-400">@{{ user.username }}</div>
                       </div>
                     </div>
                   </td>
-                  <td class="px-6 py-4 whitespace-nowrap">
-                    <div class="text-sm text-gray-900">{{ user.email_corporativo || user.email }}</div>
-                    <div class="text-sm text-gray-500">{{ user.telefono || 'Sin teléfono' }}</div>
+
+                  <!-- RUT -->
+                  <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                    {{ formatRut(user.rut_persona, user.rut_dv_persona) }}
                   </td>
+
+                  <!-- Rol -->
                   <td class="px-6 py-4 whitespace-nowrap">
-                    <span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full" 
-                          :class="getProfileBadgeClass(user.perfil || user.descripcion_perfil_usuario)">
-                      {{ user.perfil || user.descripcion_perfil_usuario }}
+                    <span 
+                      class="inline-flex px-2 py-1 text-xs font-semibold rounded-full"
+                      :class="getRoleClass(user.descripcion_perfil_usuario)"
+                    >
+                      {{ user.descripcion_perfil_usuario }}
                     </span>
                   </td>
+
+                  <!-- Estado -->
                   <td class="px-6 py-4 whitespace-nowrap">
-                    <span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full"
-                          :class="user.activo ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'">
+                    <span 
+                      class="inline-flex px-2 py-1 text-xs font-semibold rounded-full"
+                      :class="user.activo ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'"
+                    >
                       {{ user.activo ? 'Activo' : 'Inactivo' }}
                     </span>
                   </td>
-                  <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                    {{ formatDate(user.fecha_ingreso) }}
+
+                  <!-- Estado de Contraseña -->
+                  <td class="px-6 py-4 whitespace-nowrap">
+                    <div class="flex items-center space-x-1">
+                      <span 
+                        v-if="user.password_hash"
+                        class="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-800"
+                      >
+                        Configurada
+                      </span>
+                      <span 
+                        v-else
+                        class="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-yellow-100 text-yellow-800"
+                      >
+                        Pendiente
+                      </span>
+                      <span 
+                        v-if="user.requiere_cambio_password"
+                        class="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-orange-100 text-orange-800"
+                        title="Requiere cambio de contraseña"
+                      >
+                        ⚠️
+                      </span>
+                    </div>
                   </td>
+
+                  <!-- Acciones -->
                   <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                    <button @click="editUser(user)" class="text-blue-600 hover:text-blue-900 mr-3 transition-colors" title="Editar usuario">
-                      <i class="fas fa-edit"></i>
-                    </button>
-                    <button @click="toggleUserStatus(user)" 
-                            :class="user.activo ? 'text-red-600 hover:text-red-900' : 'text-green-600 hover:text-green-900'"
-                            class="transition-colors"
-                            :title="user.activo ? 'Desactivar usuario' : 'Activar usuario'">
-                      <i :class="user.activo ? 'fas fa-user-slash' : 'fas fa-user-check'"></i>
-                    </button>
+                    <div class="flex justify-end space-x-2">
+                      <!-- Editar -->
+                      <button 
+                        @click="editUser(user)"
+                        class="text-blue-600 hover:text-blue-900"
+                        title="Editar usuario"
+                      >
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
+                        </svg>
+                      </button>
+
+                      <!-- Establecer/Cambiar Contraseña -->
+                      <button 
+                        @click="setUserPassword(user)"
+                        class="text-purple-600 hover:text-purple-900"
+                        title="Establecer contraseña"
+                      >
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-3a1 1 0 011-1h2.586l6.414-6.414a6 6 0 015.743-7.743z"></path>
+                        </svg>
+                      </button>
+
+                      <!-- Activar/Desactivar -->
+                      <button 
+                        @click="toggleUserStatus(user)"
+                        :class="user.activo ? 'text-red-600 hover:text-red-900' : 'text-green-600 hover:text-green-900'"
+                        :title="user.activo ? 'Desactivar usuario' : 'Activar usuario'"
+                      >
+                        <svg v-if="user.activo" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728L5.636 5.636m12.728 12.728L18.364 5.636M5.636 18.364l12.728-12.728"></path>
+                        </svg>
+                        <svg v-else class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                        </svg>
+                      </button>
+                    </div>
                   </td>
                 </tr>
               </tbody>
             </table>
+          </div>
 
-            <!-- Empty State -->
-            <div v-if="filteredUsers.length === 0" class="text-center py-12">
-              <i class="fas fa-users text-gray-400 text-4xl mb-4"></i>
-              <h3 class="text-lg font-medium text-gray-900 mb-2">No se encontraron usuarios</h3>
-              <p class="text-gray-500">No hay usuarios que coincidan con los filtros aplicados.</p>
-            </div>
+          <!-- Mensaje si no hay usuarios -->
+          <div v-if="!loading && filteredUsers.length === 0" class="text-center py-12">
+            <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0z"></path>
+            </svg>
+            <h3 class="mt-2 text-sm font-medium text-gray-900">No se encontraron usuarios</h3>
+            <p class="mt-1 text-sm text-gray-500">
+              {{ searchTerm || filterRole || filterStatus ? 'Intenta modificar los filtros de búsqueda.' : 'Comienza creando un nuevo usuario.' }}
+            </p>
           </div>
         </div>
       </div>
     </div>
 
-    <!-- User Modal -->
-    <div v-if="showUserModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50" @click="closeUserModal">
-      <div class="relative top-20 mx-auto p-5 border w-full max-w-2xl shadow-lg rounded-md bg-white" @click.stop>
-        <!-- Modal Header -->
-        <div class="flex items-center justify-between mb-6">
-          <h3 class="text-lg font-medium text-gray-900">
-            {{ selectedUser ? 'Editar Usuario' : 'Nuevo Usuario' }}
-          </h3>
-          <button @click="closeUserModal" class="text-gray-400 hover:text-gray-600">
-            <i class="fas fa-times text-xl"></i>
-          </button>
-        </div>
+    <!-- Modales -->
+    <ModalUsuario
+      :mostrar-modal="showUserModal"
+      :modo="userModalMode"
+      :usuario="selectedUser"
+      @cerrar="closeUserModal"
+      @guardar="handleUserSave"
+      ref="modalUsuario"
+    />
 
-        <!-- Error Display -->
-        <div v-if="formError" class="mb-4 bg-red-50 border border-red-200 rounded-md p-4">
-          <div class="flex">
-            <div class="flex-shrink-0">
-              <i class="fas fa-exclamation-circle text-red-400"></i>
-            </div>
-            <div class="ml-3">
-              <p class="text-sm text-red-800">{{ formError }}</p>
-            </div>
-          </div>
-        </div>
-
-        <!-- Modal Body -->
-        <form @submit.prevent="handleUserSave" class="space-y-6">
-          <!-- RUT -->
-          <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div class="md:col-span-2">
-              <label class="block text-sm font-medium text-gray-700">RUT *</label>
-              <input
-                v-model="userForm.rut_persona"
-                type="number"
-                required
-                :disabled="!!selectedUser"
-                placeholder="12345678"
-                class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
-              />
-            </div>
-            <div>
-              <label class="block text-sm font-medium text-gray-700">DV *</label>
-              <input
-                v-model="userForm.rut_dv_persona"
-                type="text"
-                required
-                :disabled="!!selectedUser"
-                maxlength="1"
-                placeholder="9"
-                class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
-              />
-            </div>
-          </div>
-
-          <!-- Nombres -->
-          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <label class="block text-sm font-medium text-gray-700">Nombre *</label>
-              <input
-                v-model="userForm.nombre_persona"
-                type="text"
-                required
-                placeholder="Juan"
-                class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
-              />
-            </div>
-            <div>
-              <label class="block text-sm font-medium text-gray-700">Apellido Paterno *</label>
-              <input
-                v-model="userForm.apellido_paterno_persona"
-                type="text"
-                required
-                placeholder="Pérez"
-                class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
-              />
-            </div>
-          </div>
-
-          <!-- Apellido Materno -->
-          <div>
-            <label class="block text-sm font-medium text-gray-700">Apellido Materno</label>
-            <input
-              v-model="userForm.apellido_materno_persona"
-              type="text"
-              placeholder="López"
-              class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
-            />
-          </div>
-
-          <!-- Username -->
-          <div>
-            <label class="block text-sm font-medium text-gray-700">Nombre de Usuario *</label>
-            <input
-              v-model="userForm.username"
-              type="text"
-              required
-              placeholder="juan.perez"
-              class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
-            />
-          </div>
-
-          <!-- Email -->
-          <div>
-            <label class="block text-sm font-medium text-gray-700">Email Corporativo *</label>
-            <input
-              v-model="userForm.email_corporativo"
-              type="email"
-              required
-              placeholder="juan.perez@infomaxis.cl"
-              class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
-            />
-          </div>
-
-          <!-- Teléfono -->
-          <div>
-            <label class="block text-sm font-medium text-gray-700">Teléfono</label>
-            <input
-              v-model="userForm.telefono"
-              type="tel"
-              placeholder="+56912345678"
-              class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
-            />
-          </div>
-
-          <!-- Perfil -->
-          <div>
-            <label class="block text-sm font-medium text-gray-700">Perfil *</label>
-            <select
-              v-model="userForm.id_perfil_usuario"
-              required
-              class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
-            >
-              <option value="">Seleccionar perfil</option>
-              <option value="1">ADMINISTRADOR</option>
-              <option value="2">SUPERVISOR</option>
-              <option value="4">TECNICO</option>
-            </select>
-          </div>
-
-          <!-- Estado (solo en edición) -->
-          <div v-if="selectedUser" class="flex items-center">
-            <input
-              v-model="userForm.activo"
-              type="checkbox"
-              class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
-            />
-            <label class="ml-2 block text-sm text-gray-900">Usuario activo</label>
-          </div>
-
-          <!-- Modal Footer -->
-          <div class="flex justify-end space-x-3 pt-6 border-t border-gray-200">
-            <button
-              type="button"
-              @click="closeUserModal"
-              class="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
-            >
-              Cancelar
-            </button>
-            <button
-              type="submit"
-              :disabled="formLoading"
-              class="px-4 py-2 text-sm font-medium text-white bg-blue-600 border border-transparent rounded-md shadow-sm hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              <span v-if="formLoading">
-                <i class="fas fa-spinner fa-spin mr-2"></i>
-                Guardando...
-              </span>
-              <span v-else>
-                {{ selectedUser ? 'Actualizar' : 'Crear' }} Usuario
-              </span>
-            </button>
-          </div>
-        </form>
-      </div>
-    </div>
+    <ModalCambioContrasena
+      :mostrar-modal="showChangePasswordModal"
+      :es-requerido="passwordChangeRequired"
+      @cerrar="closeChangePasswordModal"
+      @contrasena-cambiada="handlePasswordChange"
+    />
 
     <!-- Toast Notifications -->
-    <div v-if="toast.show" class="fixed bottom-4 right-4 z-50">
-      <div :class="[
-        'px-6 py-4 rounded-lg shadow-lg text-white',
-        toast.type === 'success' ? 'bg-green-500' : 
-        toast.type === 'error' ? 'bg-red-500' : 'bg-blue-500'
-      ]">
-        <div class="flex items-center">
-          <i :class="[
-            'mr-2',
-            toast.type === 'success' ? 'fas fa-check-circle' : 
-            toast.type === 'error' ? 'fas fa-exclamation-circle' : 'fas fa-info-circle'
-          ]"></i>
-          {{ toast.message }}
+    <div v-if="notifications.length > 0" class="fixed bottom-4 right-4 z-50 space-y-2">
+      <div 
+        v-for="notification in notifications" 
+        :key="notification.id"
+        class="max-w-sm w-full shadow-lg rounded-lg pointer-events-auto"
+        :class="getNotificationClass(notification.type)"
+      >
+        <div class="p-4">
+          <div class="flex items-start">
+            <div class="flex-shrink-0">
+              <svg v-if="notification.type === 'success'" class="h-6 w-6 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+              </svg>
+              <svg v-else-if="notification.type === 'error'" class="h-6 w-6 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z"></path>
+              </svg>
+              <svg v-else class="h-6 w-6 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+              </svg>
+            </div>
+            <div class="ml-3 w-0 flex-1 pt-0.5">
+              <p class="text-sm font-medium" :class="notification.type === 'success' ? 'text-green-900' : notification.type === 'error' ? 'text-red-900' : 'text-blue-900'">
+                {{ notification.title }}
+              </p>
+              <p v-if="notification.message" class="mt-1 text-sm" :class="notification.type === 'success' ? 'text-green-700' : notification.type === 'error' ? 'text-red-700' : 'text-blue-700'">
+                {{ notification.message }}
+              </p>
+            </div>
+            <div class="ml-4 flex-shrink-0 flex">
+              <button 
+                @click="removeNotification(notification.id)"
+                class="rounded-md inline-flex text-gray-400 hover:text-gray-500 focus:outline-none"
+              >
+                <span class="sr-only">Cerrar</span>
+                <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                </svg>
+              </button>
+            </div>
+          </div>
         </div>
       </div>
     </div>
@@ -476,395 +475,474 @@
 </template>
 
 <script>
-import { ref, computed, onMounted } from 'vue'
-import { useRouter } from 'vue-router'
 import { useUserStore } from '@/stores/userStore'
+import ModalUsuario from '@/components/ModalUsuario.vue'
+import ModalCambioContrasena from '@/components/ModalCambioContrasena.vue'
+import apiClient from '@/utils/apiClient'
 import adminService from '@/services/adminService'
 
 export default {
   name: 'AdministradorView',
+  components: {
+    ModalUsuario,
+    ModalCambioContrasena
+  },
   setup() {
-    const router = useRouter()
     const userStore = useUserStore()
-    
-    // State
-    const activeTab = ref('dashboard')
-    const users = ref([])
-    const loading = ref(false)
-    const formLoading = ref(false)
-    const formError = ref('')
-    
-    // Filters
-    const filters = ref({
-      search: '',
-      profile: '',
-      status: ''
-    })
-    
-    // Modal
-    const showUserModal = ref(false)
-    const selectedUser = ref(null)
-    const userForm = ref({
-      rut_persona: '',
-      rut_dv_persona: '',
-      nombre_persona: '',
-      apellido_paterno_persona: '',
-      apellido_materno_persona: '',
-      username: '',
-      email_corporativo: '',
-      telefono: '',
-      id_perfil_usuario: '',
-      activo: true
-    })
-    
-    // Toast
-    const toast = ref({
-      show: false,
-      message: '',
-      type: 'success'
-    })
-
-    // Computed
-    const userName = computed(() => userStore.userName || 'Administrador')
-    const userRole = computed(() => userStore.userRole || 'ADMINISTRADOR')
-    
-    const totalUsers = computed(() => users.value.length)
-    const supervisors = computed(() => users.value.filter(u => (u.perfil || u.descripcion_perfil_usuario) === 'SUPERVISOR').length)
-    const technicians = computed(() => users.value.filter(u => (u.perfil || u.descripcion_perfil_usuario) === 'TECNICO').length)
-    const activeUsers = computed(() => users.value.filter(u => u.activo).length)
-
-    const filteredUsers = computed(() => {
-      let filtered = users.value
-
-      if (filters.value.search) {
-        const search = filters.value.search.toLowerCase()
-        filtered = filtered.filter(user => 
-          (user.nombre_persona || user.nombre || '').toLowerCase().includes(search) ||
-          (user.apellido_paterno_persona || user.apellido || '').toLowerCase().includes(search) ||
-          (user.email_corporativo || user.email || '').toLowerCase().includes(search) ||
-          (user.username || '').toLowerCase().includes(search) ||
-          (user.rut_persona || '').toString().includes(search)
-        )
-      }
-
-      if (filters.value.profile) {
-        filtered = filtered.filter(user => 
-          (user.perfil || user.descripcion_perfil_usuario) === filters.value.profile
-        )
-      }
-
-      if (filters.value.status !== '') {
-        const status = filters.value.status === 'true'
-        filtered = filtered.filter(user => user.activo === status)
-      }
-
-      return filtered
-    })
-
-    // Methods
-    const loadUsers = async () => {
-      try {
-        loading.value = true
-        const response = await adminService.getUsers()
-        users.value = response.data
-      } catch (error) {
-        console.error('Error cargando usuarios:', error)
-        showToast('Error al cargar usuarios. Mostrando datos de ejemplo.', 'error')
-        
-        // Cargar datos de ejemplo si falla la API
-        const savedUser = localStorage.getItem('gaet_user')
-        if (savedUser) {
-          const user = JSON.parse(savedUser)
-          users.value = [
-            {
-              id: 1,
-              rut_persona: user.rut?.split('-')[0] || '12345678',
-              rut_dv_persona: user.rut?.split('-')[1] || '9',
-              nombre_persona: user.nombre || 'Administrador',
-              apellido_paterno_persona: user.apellido || 'Sistema',
-              email_corporativo: user.email || 'admin@infomaxis.cl',
-              perfil: user.perfil || 'ADMINISTRADOR',
-              activo: true,
-              username: user.username || 'admin',
-              fecha_ingreso: new Date().toISOString()
-            },
-            ...users.value
-          ]
-        }
-      } finally {
-        loading.value = false
-      }
-    }
-
-    const openUserModal = (user = null) => {
-      selectedUser.value = user
-      formError.value = ''
+    return { userStore }
+  },
+  data() {
+    return {
+      // Estado general
+      loading: false,
+      showUserMenu: false,
+      activeTab: 'dashboard',
       
-      if (user) {
-        userForm.value = {
-          rut_persona: user.rut_persona,
-          rut_dv_persona: user.rut_dv_persona,
-          nombre_persona: user.nombre_persona || user.nombre,
-          apellido_paterno_persona: user.apellido_paterno_persona || user.apellido,
-          apellido_materno_persona: user.apellido_materno_persona || '',
-          username: user.username || '',
-          email_corporativo: user.email_corporativo || user.email,
-          telefono: user.telefono || '',
-          id_perfil_usuario: user.id_perfil_usuario || getProfileId(user.perfil || user.descripcion_perfil_usuario),
-          activo: user.activo !== false
-        }
-      } else {
-        userForm.value = {
-          rut_persona: '',
-          rut_dv_persona: '',
-          nombre_persona: '',
-          apellido_paterno_persona: '',
-          apellido_materno_persona: '',
-          username: '',
-          email_corporativo: '',
-          telefono: '',
-          id_perfil_usuario: '',
-          activo: true
-        }
+      // Datos
+      users: [],
+      statistics: {
+        totalUsers: 0,
+        activeUsers: 0,
+        newUsersThisMonth: 0
+      },
+      
+      // Filtros
+      searchTerm: '',
+      filterRole: '',
+      filterStatus: '',
+      
+      // Modales
+      showUserModal: false,
+      userModalMode: 'crear',  // ✅ Valor por defecto en español
+      selectedUser: null,
+      showChangePasswordModal: false,
+      passwordChangeRequired: false,
+      
+      // Notificaciones
+      notifications: []
+    }
+  },
+  computed: {
+    filteredUsers() {
+      let filtered = [...this.users];
+      
+      // Filtrar por término de búsqueda
+      if (this.searchTerm) {
+        const term = this.searchTerm.toLowerCase();
+        filtered = filtered.filter(user => 
+          user.nombre_persona.toLowerCase().includes(term) ||
+          user.apellido_paterno_persona.toLowerCase().includes(term) ||
+          user.email_corporativo.toLowerCase().includes(term) ||
+          user.username.toLowerCase().includes(term) ||
+          this.formatRut(user.rut_persona, user.rut_dv_persona).includes(term)
+        );
       }
-      showUserModal.value = true
+      
+      // Filtrar por rol
+      if (this.filterRole) {
+        filtered = filtered.filter(user => user.descripcion_perfil_usuario === this.filterRole);
+      }
+      
+      // Filtrar por estado
+      if (this.filterStatus !== '') {
+        const isActive = this.filterStatus === 'true';
+        filtered = filtered.filter(user => user.activo === isActive);
+      }
+      
+      return filtered;
     }
-
-    const closeUserModal = () => {
-      showUserModal.value = false
-      selectedUser.value = null
-      formError.value = ''
+  },
+  async mounted() {
+    // Verificar autenticación
+    if (!this.userStore.isAuthenticated) {
+      this.$router.push('/login');
+      return;
     }
-
-    const handleUserSave = async () => {
+    
+    // Verificar permisos de administrador
+    if (!this.userStore.isAdmin) {
+      this.showNotification('error', 'Acceso Denegado', 'No tienes permisos para acceder a esta sección');
+      this.$router.push('/login');
+      return;
+    }
+    
+    await this.loadUsers();
+    await this.loadStatistics();
+    
+    // Verificar si el usuario actual requiere cambio de contraseña
+    await this.checkPasswordStatus();
+  },
+  methods: {
+    // === GESTIÓN DE USUARIOS ===
+    async loadUsers() {
       try {
-        formLoading.value = true
-        formError.value = ''
+        this.loading = true;
+        console.log('🔄 Cargando usuarios desde la API...');
+        
+        const response = await adminService.getAllUsers();
+        this.users = response.data || [];
+        
+        console.log(`✅ ${this.users.length} usuarios cargados desde la API`);
+      } catch (error) {
+        console.error('❌ Error cargando usuarios:', error);
+        this.showNotification('error', 'Error', 'No se pudieron cargar los usuarios desde la API');
+        // Fallback: cargar datos locales si existe
+        this.loadLocalFallback();
+      } finally {
+        this.loading = false;
+      }
+    },
+    
+    loadLocalFallback() {
+      // Cargar datos locales como fallback
+      const savedUser = localStorage.getItem('gaet_user');
+      if (savedUser) {
+        const user = JSON.parse(savedUser);
+        this.users = [{
+          rut_persona: user.rut?.split('-')[0] || '12345678',
+          rut_dv_persona: user.rut?.split('-')[1] || '9',
+          nombre_persona: user.nombre || 'Administrador',
+          apellido_paterno_persona: user.apellido || 'Sistema',
+          email_corporativo: user.email || 'admin@infomaxis.cl',
+          descripcion_perfil_usuario: user.perfil || 'ADMINISTRADOR',
+          activo: true,
+          username: user.username || 'admin',
+          password_hash: '***',
+          requiere_cambio_password: false
+        }];
+        console.log('📝 Datos locales cargados como fallback');
+      }
+    },
+    
+    async loadStatistics() {
+      try {
+        console.log('📊 Cargando estadísticas...');
+        const response = await adminService.getStats();
+        this.statistics = response.data;
+        console.log('✅ Estadísticas cargadas:', this.statistics);
+      } catch (error) {
+        console.error('❌ Error cargando estadísticas:', error);
+        // Calcular estadísticas localmente como fallback
+        this.calculateLocalStatistics();
+      }
+    },
+    
+    calculateLocalStatistics() {
+      this.statistics.totalUsers = this.users.length;
+      this.statistics.activeUsers = this.users.filter(u => u.activo).length;
+      
+      // Usuarios nuevos este mes
+      const currentMonth = new Date().getMonth();
+      const currentYear = new Date().getFullYear();
+      this.statistics.newUsersThisMonth = this.users.filter(u => {
+        if (!u.fecha_ingreso) return false;
+        const userDate = new Date(u.fecha_ingreso);
+        return userDate.getMonth() === currentMonth && userDate.getFullYear() === currentYear;
+      }).length;
+      
+      console.log('📊 Estadísticas calculadas localmente:', this.statistics);
+    },
 
-        // Validaciones
-        if (!userForm.value.rut_persona || !userForm.value.rut_dv_persona) {
-          throw new Error('RUT y DV son obligatorios')
+    async checkPasswordStatus() {
+      try {
+        const response = await apiClient.get('/api/password/check-password-status');
+        if (response.data.requiresPasswordChange) {
+          this.passwordChangeRequired = true;
+          this.showChangePasswordModal = true;
+          this.showNotification('warning', 'Cambio de Contraseña Requerido', 'Debes cambiar tu contraseña temporal');
+        }
+      } catch (error) {
+        console.error('Error verificando estado de contraseña:', error);
+        // No mostrar error si no hay endpoint de contraseñas implementado
+      }
+    },
+    
+    // === ACCIONES DE USUARIOS ===
+    openCreateUser() {
+      console.log('🔧 Abriendo modal para crear usuario');
+      this.selectedUser = null;
+      this.userModalMode = 'crear';  // ✅ Cambiado de 'create' a 'crear'
+      this.showUserModal = true;
+      console.log('✅ Modal configurado - modo:', this.userModalMode);
+    },
+    
+    editUser(user) {
+      console.log('✏️ Abriendo modal para editar usuario:', user.nombre_persona);
+      this.selectedUser = { ...user };
+      this.userModalMode = 'editar';  // ✅ Cambiado de 'edit' a 'editar'
+      this.showUserModal = true;
+      console.log('✅ Modal configurado - modo:', this.userModalMode);
+    },
+    
+    closeUserModal() {
+      this.showUserModal = false;
+      this.selectedUser = null;
+    },
+    
+    async handleUserSave(event) {
+      try {
+        const { modo, datos, opcionContrasena } = event;
+        
+        console.log('💾 Guardando usuario:', { modo, datos: datos.nombre_persona, opcionContrasena });
+        
+        if (modo === 'crear') {  // ✅ Usando 'crear' en lugar de 'create'
+          await this.createUser(datos, opcionContrasena);
+        } else if (modo === 'editar') {  // ✅ Usando 'editar' en lugar de 'edit'
+          await this.updateUser(datos);
         }
         
-        if (!userForm.value.nombre_persona || !userForm.value.apellido_paterno_persona) {
-          throw new Error('Nombre y apellido paterno son obligatorios')
+        this.closeUserModal();
+        await this.loadUsers();
+        await this.loadStatistics();
+        
+      } catch (error) {
+        console.error('❌ Error guardando usuario:', error);
+        this.showNotification('error', 'Error', error.message || 'Error al guardar el usuario');
+      }
+    },
+    
+    async createUser(userData, passwordOption) {
+      try {
+        console.log('➕ Creando usuario:', userData.nombre_persona, 'con opción de contraseña:', passwordOption);
+        
+        // Validaciones locales
+        if (!this.validateUserData(userData)) {
+          return;
         }
         
-        if (!userForm.value.email_corporativo) {
-          throw new Error('Email corporativo es obligatorio')
-        }
+        // Crear usuario en la API
+        const response = await adminService.createUser(userData);
+        console.log('✅ Usuario creado en la API:', response.data);
         
-        if (!userForm.value.id_perfil_usuario) {
-          throw new Error('Debe seleccionar un perfil')
-        }
-
-        // Generar username automáticamente si no se proporciona
-        if (!userForm.value.username) {
-          userForm.value.username = `${userForm.value.nombre_persona}.${userForm.value.apellido_paterno_persona}`.toLowerCase().replace(/\s+/g, '.')
-        }
-
-        // Validar RUT único (solo para nuevos usuarios)
-        if (!selectedUser.value) {
-          const existingUser = users.value.find(u => u.rut_persona == userForm.value.rut_persona)
-          if (existingUser) {
-            throw new Error('Ya existe un usuario con este RUT')
-          }
-        }
-
-        // Validar username único
-        const existingUsername = users.value.find(u => 
-          u.username === userForm.value.username && 
-          (!selectedUser.value || u.id !== selectedUser.value.id)
-        )
-        if (existingUsername) {
-          throw new Error('Este nombre de usuario ya está en uso')
-        }
-
-        // Preparar datos para enviar
-        const userData = {
-          ...userForm.value,
-          perfil: getProfileName(userForm.value.id_perfil_usuario),
-          fecha_ingreso: selectedUser.value ? selectedUser.value.fecha_ingreso : new Date().toISOString()
-        }
-
-        if (selectedUser.value) {
-          // Actualizar usuario existente
+        // Si es contraseña automática, generar después de crear
+        if (passwordOption === 'auto') {
           try {
-            await adminService.updateUser(selectedUser.value.rut_persona || selectedUser.value.id, userData)
+            const passwordResponse = await adminService.generateTemporaryPassword(response.data.rut_persona);
             
-            // Actualizar en la lista local
-            const index = users.value.findIndex(u => u.id === selectedUser.value.id || u.rut_persona === selectedUser.value.rut_persona)
-            if (index > -1) {
-              users.value[index] = { ...users.value[index], ...userData }
-            }
+            this.showNotification('success', 'Usuario Creado', 
+              `Usuario creado con contraseña temporal: ${passwordResponse.temporaryPassword}`);
             
-            showToast('Usuario actualizado correctamente', 'success')
-          } catch (apiError) {
-            console.log('API no disponible, actualizando localmente')
+            // Mostrar modal con contraseña generada
+            this.$refs.modalUsuario?.mostrarContrasenaGeneradaModal(passwordResponse.temporaryPassword);
             
-            // Actualizar localmente si la API no está disponible
-            const index = users.value.findIndex(u => u.id === selectedUser.value.id || u.rut_persona === selectedUser.value.rut_persona)
-            if (index > -1) {
-              users.value[index] = { ...users.value[index], ...userData }
-            }
-            
-            showToast('Usuario actualizado correctamente', 'success')
+          } catch (passwordError) {
+            console.warn('⚠️ Usuario creado pero falló la generación de contraseña:', passwordError);
+            this.showNotification('warning', 'Usuario Creado', 
+              'Usuario creado exitosamente. Configure la contraseña manualmente.');
+          }
+        } else if (userData.password) {
+          // Establecer contraseña manual
+          try {
+            await adminService.setUserPassword(
+              response.data.rut_persona, 
+              userData.password, 
+              userData.requirePasswordChange
+            );
+            this.showNotification('success', 'Usuario Creado', 'Usuario creado con contraseña establecida');
+          } catch (passwordError) {
+            console.warn('⚠️ Usuario creado pero falló establecer contraseña:', passwordError);
+            this.showNotification('warning', 'Usuario Creado', 
+              'Usuario creado. Configure la contraseña manualmente.');
           }
         } else {
-          // Crear nuevo usuario
-          try {
-            const response = await adminService.createUser(userData)
-            users.value.push(response.data)
-            showToast('Usuario creado correctamente', 'success')
-          } catch (apiError) {
-            console.log('API no disponible, creando localmente')
-            
-            // Crear localmente si la API no está disponible
-            const newUser = {
-              id: Date.now(), // ID temporal
-              ...userData,
-              fecha_ingreso: new Date().toISOString()
-            }
-            users.value.push(newUser)
-            showToast('Usuario creado correctamente', 'success')
-          }
+          this.showNotification('success', 'Usuario Creado', 'Usuario creado exitosamente');
         }
         
-        closeUserModal()
       } catch (error) {
-        console.error('Error guardando usuario:', error)
-        formError.value = error.message
-      } finally {
-        formLoading.value = false
+        console.error('❌ Error creando usuario:', error);
+        throw new Error(error.message || 'Error al crear el usuario');
       }
-    }
-
-    const editUser = (user) => {
-      openUserModal(user)
-    }
-
-    const toggleUserStatus = async (user) => {
+    },
+    
+    async updateUser(userData) {
       try {
-        const newStatus = !user.activo
-        const action = newStatus ? 'activar' : 'desactivar'
+        console.log('✏️ Actualizando usuario:', userData.rut_persona);
         
-        if (confirm(`¿Estás seguro de ${action} este usuario?`)) {
-          try {
-            await adminService.toggleUserStatus(user.rut_persona || user.id)
-          } catch (apiError) {
-            console.log('API no disponible, actualizando localmente')
-          }
-          
-          // Actualizar estado local
-          user.activo = newStatus
-          showToast(`Usuario ${newStatus ? 'activado' : 'desactivado'} correctamente`, 'success')
-        }
+        const response = await adminService.updateUser(userData.rut_persona, userData);
+        console.log('✅ Usuario actualizado:', response.data);
+        
+        this.showNotification('success', 'Usuario Actualizado', 'Los datos del usuario se actualizaron correctamente');
       } catch (error) {
-        console.error('Error cambiando estado del usuario:', error)
-        showToast('Error al cambiar estado del usuario', 'error')
+        console.error('❌ Error actualizando usuario:', error);
+        throw new Error(error.message || 'Error al actualizar el usuario');
       }
-    }
-
-    const getProfileBadgeClass = (profile) => {
-      switch (profile) {
-        case 'ADMINISTRADOR':
-          return 'bg-purple-100 text-purple-800'
-        case 'SUPERVISOR':
-          return 'bg-blue-100 text-blue-800'
-        case 'TECNICO':
-          return 'bg-green-100 text-green-800'
-        default:
-          return 'bg-gray-100 text-gray-800'
+    },
+    
+    async setUserPassword(user) {
+      try {
+        const password = prompt(`Establecer contraseña para ${user.nombre_persona} ${user.apellido_paterno_persona}:`);
+        if (!password) return;
+        
+        if (password.length < 6) {
+          this.showNotification('error', 'Error', 'La contraseña debe tener al menos 6 caracteres');
+          return;
+        }
+        
+        console.log('🔐 Estableciendo contraseña para:', user.nombre_persona);
+        
+        const response = await adminService.setUserPassword(user.rut_persona, password, true);
+        console.log('✅ Contraseña establecida:', response);
+        
+        this.showNotification('success', 'Contraseña Establecida', `Contraseña configurada para ${user.nombre_persona}`);
+        await this.loadUsers();
+        
+      } catch (error) {
+        console.error('❌ Error estableciendo contraseña:', error);
+        this.showNotification('error', 'Error', error.message || 'Error al establecer la contraseña');
       }
-    }
-
-    const getProfileId = (profileName) => {
-      switch (profileName) {
-        case 'ADMINISTRADOR':
-          return '1'
-        case 'SUPERVISOR':
-          return '2'
-        case 'TECNICO':
-          return '4'
-        default:
-          return ''
+    },
+    
+    async toggleUserStatus(user) {
+      try {
+        const action = user.activo ? 'desactivar' : 'activar';
+        const confirmed = confirm(`¿Estás seguro de que deseas ${action} a ${user.nombre_persona} ${user.apellido_paterno_persona}?`);
+        
+        if (!confirmed) return;
+        
+        console.log(`🔄 ${action}ando usuario:`, user.nombre_persona);
+        
+        const response = await adminService.toggleUserStatus(user.rut_persona, user.activo);
+        console.log(`✅ Usuario ${action}ado:`, response);
+        
+        this.showNotification('success', 'Estado Actualizado', `Usuario ${action}ado correctamente`);
+        await this.loadUsers();
+        await this.loadStatistics();
+        
+      } catch (error) {
+        console.error('❌ Error cambiando estado del usuario:', error);
+        this.showNotification('error', 'Error', error.message || 'No se pudo cambiar el estado del usuario');
       }
-    }
-
-    const getProfileName = (profileId) => {
-      switch (profileId) {
-        case '1':
-          return 'ADMINISTRADOR'
-        case '2':
-          return 'SUPERVISOR'
-        case '4':
-          return 'TECNICO'
-        default:
-          return ''
-      }
-    }
-
-    const formatDate = (date) => {
-      if (!date) return '-'
-      return new Date(date).toLocaleDateString('es-CL')
-    }
-
-    const showToast = (message, type = 'success') => {
-      toast.value = {
-        show: true,
-        message,
-        type
+    },
+    
+    // === VALIDACIONES ===
+    validateUserData(userData) {
+      // Validar RUT
+      if (!adminService.validateRut(userData.rut_persona, userData.rut_dv_persona)) {
+        this.showNotification('error', 'RUT Inválido', 'El RUT ingresado no es válido');
+        return false;
       }
       
+      // Validar email
+      if (!adminService.validateEmail(userData.email_corporativo)) {
+        this.showNotification('error', 'Email Inválido', 'El email corporativo no es válido');
+        return false;
+      }
+      
+      // Validar contraseña si se proporciona
+      if (userData.password && userData.password.length < 6) {
+        this.showNotification('error', 'Contraseña Inválida', 'La contraseña debe tener al menos 6 caracteres');
+        return false;
+      }
+      
+      return true;
+    },
+    
+    // === GESTIÓN DE CONTRASEÑAS ===
+    openChangePassword() {
+      this.passwordChangeRequired = false;
+      this.showChangePasswordModal = true;
+      this.showUserMenu = false;
+    },
+    
+    closeChangePasswordModal() {
+      if (!this.passwordChangeRequired) {
+        this.showChangePasswordModal = false;
+      }
+    },
+    
+    async handlePasswordChange(passwordData) {
+      try {
+        await apiClient.put('/api/password/change-password', passwordData);
+        
+        this.showNotification('success', 'Contraseña Actualizada', 'Tu contraseña se ha actualizado correctamente');
+        this.showChangePasswordModal = false;
+        this.passwordChangeRequired = false;
+        
+      } catch (error) {
+        console.error('Error cambiando contraseña:', error);
+        this.showNotification('error', 'Error', error.response?.data?.error || 'Error al cambiar la contraseña');
+      }
+    },
+    
+    // === UTILIDADES ===
+    formatRut(rut, dv) {
+      if (!rut || !dv) return '';
+      return `${rut.toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.')}-${dv}`;
+    },
+    
+    getRoleClass(role) {
+      switch (role) {
+        case 'ADMINISTRADOR':
+          return 'bg-red-100 text-red-800';
+        case 'SUPERVISOR':
+          return 'bg-blue-100 text-blue-800';
+        case 'TECNICO':
+          return 'bg-green-100 text-green-800';
+        default:
+          return 'bg-gray-100 text-gray-800';
+      }
+    },
+    
+    // === NOTIFICACIONES ===
+    showNotification(type, title, message = '') {
+      const notification = {
+        id: Date.now() + Math.random(),
+        type,
+        title,
+        message
+      };
+      
+      this.notifications.push(notification);
+      
+      // Auto-remover después de 5 segundos
       setTimeout(() => {
-        toast.value.show = false
-      }, 3000)
-    }
-
-    const logout = async () => {
-      if (confirm('¿Estás seguro de cerrar sesión?')) {
-        await userStore.logout()
-        router.push('/login')
+        this.removeNotification(notification.id);
+      }, 5000);
+    },
+    
+    removeNotification(id) {
+      const index = this.notifications.findIndex(n => n.id === id);
+      if (index > -1) {
+        this.notifications.splice(index, 1);
       }
-    }
-
-    // Lifecycle
-    onMounted(() => {
-      loadUsers()
-    })
-
-    return {
-      // State
-      activeTab,
-      users,
-      loading,
-      formLoading,
-      formError,
-      filters,
-      showUserModal,
-      selectedUser,
-      userForm,
-      toast,
-      
-      // Computed
-      userName,
-      userRole,
-      totalUsers,
-      supervisors,
-      technicians,
-      activeUsers,
-      filteredUsers,
-      
-      // Methods
-      openUserModal,
-      closeUserModal,
-      handleUserSave,
-      editUser,
-      toggleUserStatus,
-      getProfileBadgeClass,
-      formatDate,
-      logout
+    },
+    
+    getNotificationClass(type) {
+      switch (type) {
+        case 'success':
+          return 'bg-green-50 border border-green-200';
+        case 'error':
+          return 'bg-red-50 border border-red-200';
+        case 'warning':
+          return 'bg-yellow-50 border border-yellow-200';
+        default:
+          return 'bg-blue-50 border border-blue-200';
+      }
+    },
+    
+    // === AUTENTICACIÓN ===
+    async logout() {
+      try {
+        await this.userStore.logout();
+        this.$router.push('/login');
+      } catch (error) {
+        console.error('Error durante logout:', error);
+        this.$router.push('/login');
+      }
     }
   }
 }
 </script>
+
+<style scoped>
+/* Estilos adicionales si son necesarios */
+.fade-enter-active,
+.fade-leave-active {
+  transition: opacity 0.3s ease;
+}
+
+.fade-enter-from,
+.fade-leave-to {
+  opacity: 0;
+}
+</style>

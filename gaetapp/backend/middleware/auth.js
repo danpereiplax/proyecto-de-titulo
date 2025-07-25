@@ -183,11 +183,15 @@ const requireTechnician = (req, res, next) => {
 /**
  * Generar token JWT
  */
-const generateToken = (user, expiresIn = '24h') => {
+const generateToken = (userData, expiresIn = '24h') => {
   const payload = {
-    rut_persona: user.rut_persona,
-    email: user.email_corporativo || user.email_personal,
-    perfil: user.descripcion_perfil_usuario,
+    rut_persona: userData.rut_persona,
+    username: userData.username,
+    nombre: userData.nombre,
+    apellido: userData.apellido,
+    email: userData.email,
+    perfil: userData.perfil,           // ← Campo correcto
+    id_perfil: userData.id_perfil,
     iat: Math.floor(Date.now() / 1000)
   };
 
