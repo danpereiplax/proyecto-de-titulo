@@ -852,7 +852,7 @@ export default {
     
     async handlePasswordChange(passwordData) {
       try {
-        await apiClient.put('/api/password/change-password', passwordData);
+        await apiClient.post('/api/auth/change-password', passwordData);
         
         this.showNotification('success', 'Contraseña Actualizada', 'Tu contraseña se ha actualizado correctamente');
         this.showChangePasswordModal = false;
