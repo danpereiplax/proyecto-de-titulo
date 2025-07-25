@@ -7,10 +7,10 @@
           <img class="h-12 w-auto" src="/logo-infomaxis.png" alt="Infomaxis" />
         </div>
         <h2 class="mt-6 text-center text-3xl font-extrabold text-gray-900">
-          Sistema GAET
+          Iniciar Sesión
         </h2>
         <p class="mt-2 text-center text-sm text-gray-600">
-          Gestión de Actividades y Equipos Técnicos
+          Sistema GAET - Gestión de Tareas
         </p>
       </div>
 
@@ -27,7 +27,7 @@
               type="text"
               required
               class="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-t-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm"
-              placeholder="Usuario"
+              placeholder="Nombre de Usuario"
               :disabled="loading"
             >
           </div>
@@ -90,7 +90,7 @@
         <!-- Info adicional -->
         <div class="text-center">
           <p class="text-xs text-gray-500">
-            Sistema desarrollado por Infomaxis
+            GAET v1.0.0 - Infomaxis
           </p>
         </div>
       </form>
