@@ -10,7 +10,7 @@ require('dotenv').config();
 // Importar rutas
 const authRoutes = require('./routes/authRoutes');
 const adminRoutes = require('./routes/adminRoutes');
-// const supervisorRoutes = require('./routes/supervisorRoutes');
+const supervisorRoutes = require('./routes/supervisorRoutes');
 // const technicianRoutes = require('./routes/technicianRoutes');
 
 // Importar middleware
@@ -143,7 +143,7 @@ app.use('/api/auth', authRoutes);
 app.use('/api/admin', adminRoutes);
 
 // Rutas de supervisor (requieren autenticación y permisos de supervisor)
-// app.use('/api/supervisor', supervisorRoutes);
+app.use('/api/supervisor', supervisorRoutes);
 
 // Rutas de técnico (requieren autenticación)
 // app.use('/api/technician', technicianRoutes);

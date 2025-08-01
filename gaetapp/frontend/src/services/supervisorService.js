@@ -1,626 +1,565 @@
-// frontend/src/services/supervisorService.js
+// frontend/src/services/supervisorService.js - PARTE 1
+import apiClient from '@/utils/apiClient'
 
-import apiClient from './apiClient'
-
-/**
- * Servicio completo para todas las operaciones del Supervisor
- * Integra con backend GAET y maneja fallbacks
- */
-class SupervisorService {
-  
-  // ========================
-  // DASHBOARD & STATS
-  // ========================
+const supervisorService = {
+  // ========================================
+  // DASHBOARD Y ESTADÍSTICAS
+  // ========================================
   
   async getStats() {
     try {
-      // Intentar obtener stats reales del backend
-      const [tasksResponse, techniciansResponse] = await Promise.all([
-        apiClient.get('/tarea'),
-        apiClient.get('/admin/users?perfil=4') // TECNICO = 4
-      ])
-      
-      const tasks = tasksResponse.data
-      const technicians = techniciansResponse.data
-      
-      const today = new Date().toISOString().split('T')[0]
-      
-      return {
-        activeTasks: tasks.filter(t => [1, 2].includes(t.id_estado_tarea)).length, // ASIGNADA, EN_EJECUCION
-        pendingTasks: tasks.filter(t => t.id_estado_tarea === 1).length, // ASIGNADA
-        completedToday: tasks.filter(t => 
-          t.id_estado_tarea === 3 && // FINALIZADA
-          t.fecha_finalizacion?.startsWith(today)
-        ).length,
-        activeTechnicians: technicians.filter(t => t.activo).length
-      }
+      console.log('📊 Obteniendo estadísticas del supervisor...');
+      const response = await apiClient.get('/supervisor/stats');
+      return response.data;
     } catch (error) {
-      console.warn('Using mock stats:', error.message)
-      return {
-        activeTasks: 12,
-        pendingTasks: 5,
-        completedToday: 8,
-        activeTechnicians: 3
-      }
+      console.error('❌ Error obteniendo estadísticas:', error);
+      throw new Error(error.response?.data?.message || 'Error al obtener estadísticas');
     }
-  }
+  },
 
-  async getTechnicians() {
-    try {
-      const response = await apiClient.get('/admin/users?perfil=4') // TECNICO
-      
-      // Obtener tareas por técnico
-      const tasksResponse = await apiClient.get('/tarea')
-      const tasks = tasksResponse.data
-      
-      return response.data.map(user => {
-        const userTasks = tasks.filter(t => t.rut_tecnico_asignado === user.rut_persona)
-        const activeTasks = userTasks.filter(t => [1, 2].includes(t.id_estado_tarea))
-        
-        return {
-          id: user.rut_persona,
-          name: `${user.nombres} ${user.apellidos}`,
-          email: user.email,
-          username: user.username,
-          active: user.activo,
-          tasksAssigned: activeTasks.length,
-          status: user.activo ? (activeTasks.length > 0 ? 'En Terreno' : 'Disponible') : 'Inactivo'
-        }
-      })
-    } catch (error) {
-      console.warn('Using mock technicians:', error.message)
-      return this.getMockTechnicians()
-    }
-  }
-
-  getMockTechnicians() {
-    return [
-      { id: '12345678-9', name: 'Ana Técnico', tasksAssigned: 4, status: 'En Terreno', active: true },
-      { id: '98765432-1', name: 'Carlos López', tasksAssigned: 3, status: 'Disponible', active: true },
-      { id: '11223344-5', name: 'María González', tasksAssigned: 5, status: 'En Terreno', active: true }
-    ]
-  }
-
-  // ========================
-  // GESTIÓN DE TAREAS - CRUD COMPLETO
-  // ========================
+  // ========================================
+  // GESTIÓN DE TAREAS
+  // ========================================
   
   async getTasks(filters = {}) {
     try {
-      let url = '/tarea'
-      const params = new URLSearchParams()
+      console.log('📋 Obteniendo tareas con filtros:', filters);
+      const params = new URLSearchParams();
       
-      if (filters.status && filters.status !== '') {
-        const statusId = this.getStatusId(filters.status)
-        params.append('estado', statusId)
-      }
-      if (filters.technician && filters.technician !== '') params.append('tecnico', filters.technician)
-      if (filters.client && filters.client !== '') params.append('cliente', filters.client)
-      if (filters.date && filters.date !== '') params.append('fecha', filters.date)
+      if (filters.status) params.append('status', filters.status);
+      if (filters.technician) params.append('technician', filters.technician);
+      if (filters.search) params.append('search', filters.search);
       
-      if (params.toString()) {
-        url += `?${params.toString()}`
-      }
-      
-      const response = await apiClient.get(url)
-      
-      return response.data.map(tarea => ({
-        id: tarea.id_tarea,
-        title: tarea.titulo || `Tarea #${tarea.id_tarea}`,
-        description: tarea.descripcion || '',
-        status: this.getStatusString(tarea.id_estado_tarea),
-        priority: tarea.prioridad || 'Media',
-        date: tarea.fecha_programada,
-        dueDate: tarea.fecha_vencimiento,
-        technicianId: tarea.rut_tecnico_asignado,
-        technician: tarea.nombre_tecnico || 'Sin asignar',
-        clientId: tarea.id_cliente,
-        client: tarea.nombre_cliente || 'Cliente no especificado',
-        typeId: tarea.id_tipo_tarea,
-        typeName: tarea.nombre_tipo_tarea,
-        location: tarea.direccion_local,
-        notes: tarea.observaciones,
-        createdAt: tarea.fecha_creacion,
-        updatedAt: tarea.fecha_actualizacion
-      }))
+      const response = await apiClient.get(`/supervisor/tasks?${params}`);
+      return response.data;
     } catch (error) {
-      console.warn('Using mock tasks:', error.message)
-      return this.getMockTasks()
+      console.error('❌ Error obteniendo tareas:', error);
+      throw new Error(error.response?.data?.message || 'Error al obtener las tareas');
     }
-  }
-
-  getMockTasks() {
-    return [
-      {
-        id: 1,
-        title: 'Instalación POS - Sucursal Centro',
-        description: 'Instalación y configuración de sistema POS en sucursal centro',
-        technician: 'Ana Técnico',
-        technicianId: '12345678-9',
-        client: 'Retail ABC',
-        clientId: 1,
-        date: '2025-01-13',
-        status: 'ENEJECUCION',
-        priority: 'Alta',
-        typeId: 1,
-        typeName: 'Instalación POS',
-        location: 'Av. Principal 123'
-      },
-      {
-        id: 2,
-        title: 'Mantención Red - Oficina Principal',
-        description: 'Mantención preventiva de equipos de red',
-        technician: 'Carlos López',
-        technicianId: '98765432-1',
-        client: 'Empresa XYZ',
-        clientId: 2,
-        date: '2025-01-13',
-        status: 'ASIGNADA',
-        priority: 'Media',
-        typeId: 2,
-        typeName: 'Mantención',
-        location: 'Torre Empresarial, Piso 15'
-      }
-    ]
-  }
+  },
 
   async createTask(taskData) {
     try {
-      const payload = {
-        titulo: taskData.title,
-        descripcion: taskData.description,
-        id_tipo_tarea: taskData.typeId,
-        id_estado_tarea: this.getStatusId(taskData.status || 'ASIGNADA'),
-        rut_tecnico_asignado: taskData.technicianId,
-        id_cliente: taskData.clientId,
-        id_local_cliente: taskData.locationId,
-        fecha_programada: taskData.date,
-        fecha_vencimiento: taskData.dueDate,
-        prioridad: taskData.priority || 'Media',
-        observaciones: taskData.notes
-      }
-      
-      const response = await apiClient.post('/tarea', payload)
-      return {
-        ...taskData,
-        id: response.data.id_tarea || response.data.insertId
-      }
+      console.log('📝 Creando nueva tarea:', taskData);
+      const response = await apiClient.post('/supervisor/tasks', taskData);
+      return response.data;
     } catch (error) {
-      console.error('Error creando tarea:', error)
-      // Simular creación exitosa para desarrollo
-      return {
-        ...taskData,
-        id: Date.now()
-      }
+      console.error('❌ Error creando tarea:', error);
+      throw new Error(error.response?.data?.message || 'Error al crear la tarea');
     }
-  }
+  },
 
   async updateTask(taskId, taskData) {
     try {
-      const payload = {
-        titulo: taskData.title,
-        descripcion: taskData.description,
-        id_tipo_tarea: taskData.typeId,
-        id_estado_tarea: this.getStatusId(taskData.status),
-        rut_tecnico_asignado: taskData.technicianId,
-        id_cliente: taskData.clientId,
-        fecha_programada: taskData.date,
-        fecha_vencimiento: taskData.dueDate,
-        prioridad: taskData.priority,
-        observaciones: taskData.notes
-      }
-      
-      await apiClient.put(`/tarea/${taskId}`, payload)
-      return { ...taskData, id: taskId }
+      console.log(`📝 Actualizando tarea ${taskId}:`, taskData);
+      const response = await apiClient.put(`/supervisor/tasks/${taskId}`, taskData);
+      return response.data;
     } catch (error) {
-      console.error('Error actualizando tarea:', error)
-      return { ...taskData, id: taskId }
+      console.error('❌ Error actualizando tarea:', error);
+      throw new Error(error.response?.data?.message || 'Error al actualizar la tarea');
     }
-  }
+  },
 
   async deleteTask(taskId) {
     try {
-      await apiClient.delete(`/tarea/${taskId}`)
-      return true
+      console.log(`🗑️ Eliminando tarea ${taskId}`);
+      const response = await apiClient.delete(`/supervisor/tasks/${taskId}`);
+      return response.data;
     } catch (error) {
-      console.error('Error eliminando tarea:', error)
-      return true // Simular éxito para desarrollo
+      console.error('❌ Error eliminando tarea:', error);
+      throw new Error(error.response?.data?.message || 'Error al eliminar la tarea');
     }
-  }
+  },
 
-  async assignTask(taskId, technicianId) {
+  // ========================================
+  // GESTIÓN DE TÉCNICOS
+  // ========================================
+  
+  async getTechnicians() {
     try {
-      await apiClient.put(`/tarea/${taskId}`, {
-        rut_tecnico_asignado: technicianId,
-        id_estado_tarea: 1, // ASIGNADA
-        fecha_asignacion: new Date().toISOString()
-      })
-      return true
+      console.log('👨‍🔧 Obteniendo técnicos...');
+      const response = await apiClient.get('/supervisor/technicians');
+      return response.data;
     } catch (error) {
-      console.error('Error asignando tarea:', error)
-      return true
+      console.error('❌ Error obteniendo técnicos:', error);
+      throw new Error(error.response?.data?.message || 'Error al obtener los técnicos');
     }
-  }
+  },
 
-  // ========================
-  // GESTIÓN DE CLIENTES - CRUD COMPLETO
-  // ========================
+  // ========================================
+  // GESTIÓN DE CLIENTES
+  // ========================================
   
   async getClients() {
     try {
-      const response = await apiClient.get('/cliente')
-      
-      // Obtener estadísticas por cliente
-      const tasksResponse = await apiClient.get('/tarea')
-      const locationsResponse = await apiClient.get('/local')
-      
-      const tasks = tasksResponse.data
-      const locations = locationsResponse.data
-      
-      return response.data.map(cliente => {
-        const clientTasks = tasks.filter(t => t.id_cliente === cliente.id_cliente)
-        const clientLocations = locations.filter(l => l.id_cliente === cliente.id_cliente)
-        const activeTasks = clientTasks.filter(t => [1, 2].includes(t.id_estado_tarea))
-        
-        return {
-          id: cliente.id_cliente,
-          name: cliente.razon_social,
-          rut: cliente.rut_cliente,
-          email: cliente.email,
-          phone: cliente.telefono,
-          address: cliente.direccion,
-          contactPerson: cliente.persona_contacto,
-          notes: cliente.observaciones,
-          locations: clientLocations.length,
-          activeTasks: activeTasks.length,
-          totalTasks: clientTasks.length,
-          createdAt: cliente.fecha_creacion
-        }
-      })
+      console.log('🏢 Obteniendo clientes...');
+      const response = await apiClient.get('/supervisor/clients');
+      return response.data;
     } catch (error) {
-      console.warn('Using mock clients:', error.message)
-      return this.getMockClients()
+      console.error('❌ Error obteniendo clientes:', error);
+      throw new Error(error.response?.data?.message || 'Error al obtener los clientes');
     }
-  }
-
-  getMockClients() {
-    return [
-      { 
-        id: 1, 
-        name: 'Retail ABC', 
-        rut: '76.123.456-7', 
-        email: 'contacto@retailabc.cl',
-        phone: '+56 9 1234 5678',
-        address: 'Av. Principal 100',
-        locations: 12, 
-        activeTasks: 3,
-        totalTasks: 15
-      },
-      { 
-        id: 2, 
-        name: 'Empresa XYZ', 
-        rut: '96.789.123-4', 
-        email: 'info@empresaxyz.cl',
-        phone: '+56 9 8765 4321',
-        address: 'Torre Empresarial 250',
-        locations: 5, 
-        activeTasks: 2,
-        totalTasks: 8
-      }
-    ]
-  }
+  },
 
   async createClient(clientData) {
     try {
-      const payload = {
-        razon_social: clientData.name,
-        rut_cliente: clientData.rut,
-        email: clientData.email,
-        telefono: clientData.phone,
-        direccion: clientData.address,
-        persona_contacto: clientData.contactPerson,
-        observaciones: clientData.notes
-      }
-      
-      const response = await apiClient.post('/cliente', payload)
-      return {
-        ...clientData,
-        id: response.data.id_cliente || response.data.insertId,
-        locations: 0,
-        activeTasks: 0,
-        totalTasks: 0
-      }
+      console.log('🏢 Creando nuevo cliente:', clientData);
+      const response = await apiClient.post('/supervisor/clients', clientData);
+      return response.data;
     } catch (error) {
-      console.error('Error creando cliente:', error)
-      return {
-        ...clientData,
-        id: Date.now(),
-        locations: 0,
-        activeTasks: 0,
-        totalTasks: 0
-      }
+      console.error('❌ Error creando cliente:', error);
+      throw new Error(error.response?.data?.message || 'Error al crear el cliente');
     }
-  }
+  },
 
   async updateClient(clientId, clientData) {
     try {
-      const payload = {
-        razon_social: clientData.name,
-        rut_cliente: clientData.rut,
-        email: clientData.email,
-        telefono: clientData.phone,
-        direccion: clientData.address,
-        persona_contacto: clientData.contactPerson,
-        observaciones: clientData.notes
-      }
-      
-      await apiClient.put(`/cliente/${clientId}`, payload)
-      return { ...clientData, id: clientId }
+      console.log(`🏢 Actualizando cliente ${clientId}:`, clientData);
+      const response = await apiClient.put(`/supervisor/clients/${clientId}`, clientData);
+      return response.data;
     } catch (error) {
-      console.error('Error actualizando cliente:', error)
-      return { ...clientData, id: clientId }
+      console.error('❌ Error actualizando cliente:', error);
+      throw new Error(error.response?.data?.message || 'Error al actualizar el cliente');
     }
-  }
+  },
 
-  async deleteClient(clientId) {
-    try {
-      await apiClient.delete(`/cliente/${clientId}`)
-      return true
-    } catch (error) {
-      console.error('Error eliminando cliente:', error)
-      return true
-    }
-  }
-
-  // ========================
-  // CONFIGURACIÓN DINÁMICA
-  // ========================
+  // ========================================
+  // DATOS AUXILIARES
+  // ========================================
   
   async getTaskTypes() {
     try {
-      const response = await apiClient.get('/tipo_tarea')
-      return response.data.map(tipo => ({
-        id: tipo.id_tipo_tarea,
-        name: tipo.descripcion_tipo_tarea
-      }))
+      console.log('📋 Obteniendo tipos de tarea...');
+      const response = await apiClient.get('/supervisor/task-types');
+      return response.data;
     } catch (error) {
-      console.warn('Using mock task types:', error.message)
-      return [
-        { id: 1, name: 'Instalación POS' },
-        { id: 2, name: 'Mantención Preventiva' },
-        { id: 3, name: 'Soporte en Sitio' },
-        { id: 4, name: 'Configuración Red' }
-      ]
+      console.error('❌ Error obteniendo tipos de tarea:', error);
+      throw new Error(error.response?.data?.message || 'Error al obtener tipos de tarea');
     }
-  }
+  },
 
-  async createTaskType(name) {
+  async getTaskStates() {
     try {
-      const response = await apiClient.post('/tipo_tarea', {
-        descripcion_tipo_tarea: name
-      })
-      return {
-        id: response.data.id_tipo_tarea || response.data.insertId,
-        name: name
-      }
+      console.log('📊 Obteniendo estados de tarea...');
+      const response = await apiClient.get('/supervisor/task-states');
+      return response.data;
     } catch (error) {
-      console.error('Error creando tipo de tarea:', error)
-      return { id: Date.now(), name }
+      console.error('❌ Error obteniendo estados de tarea:', error);
+      throw new Error(error.response?.data?.message || 'Error al obtener estados de tarea');
     }
-  }
+  },
+
+  async getClientLocations(clientId) {
+    try {
+      console.log(`📍 Obteniendo locales del cliente ${clientId}...`);
+      const response = await apiClient.get(`/supervisor/client-locations/${clientId}`);
+      return response.data;
+    } catch (error) {
+      console.error('❌ Error obteniendo locales:', error);
+      throw new Error(error.response?.data?.message || 'Error al obtener los locales');
+    }
+  },
+  // ========================================
+  // CONFIGURACIÓN
+  // ========================================
+  
+  async createTaskType(taskTypeData) {
+    try {
+      console.log('📋 Creando tipo de tarea:', taskTypeData);
+      const response = await apiClient.post('/basicas/tipo_tarea', taskTypeData);
+      return response.data;
+    } catch (error) {
+      console.error('❌ Error creando tipo de tarea:', error);
+      throw new Error(error.response?.data?.message || 'Error al crear el tipo de tarea');
+    }
+  },
 
   async deleteTaskType(taskTypeId) {
     try {
-      await apiClient.delete(`/tipo_tarea/${taskTypeId}`)
-      return true
+      console.log(`🗑️ Eliminando tipo de tarea ${taskTypeId}`);
+      const response = await apiClient.delete(`/basicas/tipo_tarea/${taskTypeId}`);
+      return response.data;
     } catch (error) {
-      console.error('Error eliminando tipo de tarea:', error)
-      return true
+      console.error('❌ Error eliminando tipo de tarea:', error);
+      throw new Error(error.response?.data?.message || 'Error al eliminar el tipo de tarea');
     }
-  }
+  },
 
-  async getBillingAreas() {
-    try {
-      const response = await apiClient.get('/area_cobro')
-      return response.data.map(area => ({
-        id: area.id_area_cobro,
-        name: area.descripcion_area_cobro
-      }))
-    } catch (error) {
-      console.warn('Using mock billing areas:', error.message)
-      return [
-        { id: 1, name: 'Retail - Tiendas' },
-        { id: 2, name: 'Corporativo - Oficinas' },
-        { id: 3, name: 'Mantenimiento' },
-        { id: 4, name: 'Instalaciones' }
-      ]
-    }
-  }
-
-  async createBillingArea(name) {
-    try {
-      const response = await apiClient.post('/area_cobro', {
-        descripcion_area_cobro: name
-      })
-      return {
-        id: response.data.id_area_cobro || response.data.insertId,
-        name: name
-      }
-    } catch (error) {
-      console.error('Error creando área de cobro:', error)
-      return { id: Date.now(), name }
-    }
-  }
-
-  async deleteBillingArea(billingAreaId) {
-    try {
-      await apiClient.delete(`/area_cobro/${billingAreaId}`)
-      return true
-    } catch (error) {
-      console.error('Error eliminando área de cobro:', error)
-      return true
-    }
-  }
-
-  // ========================
-  // SISTEMA DE REPORTES
-  // ========================
+  // ========================================
+  // REPORTES
+  // ========================================
   
-  async generateProductivityReport(period = 'month') {
+  async generateReport(reportType, filters = {}) {
     try {
-      const response = await apiClient.get(`/supervisor/reports/productivity?period=${period}`)
-      return response.data
-    } catch (error) {
-      console.warn('Using mock productivity report:', error.message)
-      return this.getMockProductivityReport()
-    }
-  }
+      console.log(`📊 Generando reporte ${reportType} con filtros:`, filters);
+      
+      // Por ahora simulamos la generación de reportes
+      // En el futuro se conectará con un endpoint real
+      const mockReportData = {
+        productivity: {
+          efficiency: 84.2,
+          avgTime: 4.2,
+          completedTasks: 156,
+          estimatedRevenue: 2400000
+        },
+        clients: {
+          totalClients: 25,
+          activeClients: 23,
+          avgSatisfaction: 4.8,
+          totalRevenue: 15600000
+        },
+        technicians: {
+          totalTechnicians: 8,
+          activeTechnicians: 7,
+          avgEfficiency: 87.3,
+          totalHours: 320
+        }
+      };
 
-  getMockProductivityReport() {
-    return {
-      period: 'month',
-      totalTasks: 45,
-      completedTasks: 38,
-      efficiency: 84.4,
-      technicians: [
-        { name: 'Ana Técnico', completed: 15, assigned: 17, efficiency: 88.2 },
-        { name: 'Carlos López', completed: 12, assigned: 14, efficiency: 85.7 },
-        { name: 'María González', completed: 11, assigned: 14, efficiency: 78.6 }
-      ]
-    }
-  }
+      // Simular delay de generación
+      await new Promise(resolve => setTimeout(resolve, 1500));
 
-  async generateClientReport(clientId = null) {
-    try {
-      const url = clientId 
-        ? `/supervisor/reports/client/${clientId}` 
-        : '/supervisor/reports/clients'
-      const response = await apiClient.get(url)
-      return response.data
-    } catch (error) {
-      console.warn('Using mock client report:', error.message)
-      return this.getMockClientReport()
-    }
-  }
-
-  getMockClientReport() {
-    return {
-      totalClients: 12,
-      activeClients: 8,
-      totalRevenue: 2450000,
-      clients: [
-        { name: 'Retail ABC', tasks: 15, revenue: 850000, satisfaction: 4.5 },
-        { name: 'Empresa XYZ', tasks: 8, revenue: 420000, satisfaction: 4.2 },
-        { name: 'Tienda 123', tasks: 12, revenue: 680000, satisfaction: 4.7 }
-      ]
-    }
-  }
-
-  async generateTaskStatusReport() {
-    try {
-      const response = await apiClient.get('/supervisor/reports/task-status')
-      return response.data
-    } catch (error) {
-      console.warn('Using mock task status report:', error.message)
       return {
-        assigned: 12,
-        inProgress: 8,
-        completed: 25,
-        cancelled: 2,
-        failed: 1
-      }
-    }
-  }
-
-  async generateTimeAnalysisReport() {
-    try {
-      const response = await apiClient.get('/supervisor/reports/time-analysis')
-      return response.data
+        success: true,
+        message: 'Reporte generado exitosamente',
+        data: mockReportData[reportType] || mockReportData.productivity,
+        downloadUrl: `/reports/${reportType}_${Date.now()}.pdf`
+      };
     } catch (error) {
-      console.warn('Using mock time analysis report:', error.message)
-      return {
-        averageCompletionTime: 4.2,
-        onTimeCompletion: 78,
-        delayedTasks: 11,
-        taskTypes: [
-          { type: 'Instalación POS', avgTime: 6.5, onTime: 72 },
-          { type: 'Mantención', avgTime: 3.2, onTime: 85 },
-          { type: 'Soporte', avgTime: 2.1, onTime: 90 }
-        ]
-      }
+      console.error('❌ Error generando reporte:', error);
+      throw new Error(error.response?.data?.message || 'Error al generar el reporte');
     }
-  }
+  },
 
-  // ========================
+  async exportReport(reportType, format = 'pdf') {
+    try {
+      console.log(`📥 Exportando reporte ${reportType} en formato ${format}`);
+      
+      // Simular exportación
+      await new Promise(resolve => setTimeout(resolve, 2000));
+      
+      return {
+        success: true,
+        message: `Reporte exportado en formato ${format.toUpperCase()}`,
+        downloadUrl: `/exports/${reportType}_${Date.now()}.${format}`
+      };
+    } catch (error) {
+      console.error('❌ Error exportando reporte:', error);
+      throw new Error('Error al exportar el reporte');
+    }
+  },
+
+  // ========================================
   // UTILIDADES
-  // ========================
+  // ========================================
   
-  getStatusId(status) {
-    const statusMap = {
-      'ASIGNADA': 1,
-      'ENEJECUCION': 2,
-      'FINALIZADA': 3,
-      'CANCELADA': 4,
-      'TAREA_FALLIDA': 5,
-      'ELIMINADA_TECNICO': 6,
-      'ELIMINADA_SUPERVISOR': 7
+  formatTaskForDisplay(task) {
+    return {
+      ...task,
+      fecha_creacion_display: this.formatDate(task.fecha_creacion),
+      fecha_programada_display: this.formatDate(task.fecha_programada),
+      prioridad_display: this.getPriorityLabel(task.prioridad),
+      estado_display: this.getStatusLabel(task.estado)
+    };
+  },
+
+  formatDate(dateString) {
+    if (!dateString) return '-';
+    
+    const date = new Date(dateString);
+    const options = {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    };
+    
+    return date.toLocaleDateString('es-CL', options);
+  },
+
+  getPriorityLabel(priority) {
+    const priorities = {
+      'ALTA': 'Alta',
+      'MEDIA': 'Media',
+      'BAJA': 'Baja'
+    };
+    return priorities[priority] || priority;
+  },
+
+  getStatusLabel(status) {
+    const statuses = {
+      'PENDIENTE': 'Pendiente',
+      'EN_PROGRESO': 'En Progreso',
+      'COMPLETADA': 'Completada',
+      'CANCELADA': 'Cancelada'
+    };
+    return statuses[status] || status;
+  },
+
+  getPriorityClass(priority) {
+    const classes = {
+      'ALTA': 'bg-red-100 text-red-800',
+      'MEDIA': 'bg-yellow-100 text-yellow-800',
+      'BAJA': 'bg-green-100 text-green-800'
+    };
+    return classes[priority] || 'bg-gray-100 text-gray-800';
+  },
+
+  getStatusClass(status) {
+    const classes = {
+      'PENDIENTE': 'bg-yellow-100 text-yellow-800',
+      'EN_PROGRESO': 'bg-blue-100 text-blue-800',
+      'COMPLETADA': 'bg-green-100 text-green-800',
+      'CANCELADA': 'bg-red-100 text-red-800'
+    };
+    return classes[status] || 'bg-gray-100 text-gray-800';
+  },
+
+  getTechnicianStatusClass(status) {
+    const classes = {
+      'DISPONIBLE': 'bg-green-100 text-green-800',
+      'EN_TERRENO': 'bg-blue-100 text-blue-800',
+      'OCUPADO': 'bg-yellow-100 text-yellow-800',
+      'INACTIVO': 'bg-gray-100 text-gray-800'
+    };
+    return classes[status] || 'bg-gray-100 text-gray-800';
+  },
+
+  // ========================================
+  // VALIDACIONES
+  // ========================================
+  
+  validateTaskData(taskData) {
+    const errors = [];
+
+    if (!taskData.descripcion || taskData.descripcion.trim().length < 10) {
+      errors.push('La descripción debe tener al menos 10 caracteres');
     }
-    return statusMap[status] || 1
-  }
 
-  getStatusString(statusId) {
-    const statusMap = {
-      1: 'ASIGNADA',
-      2: 'ENEJECUCION',
-      3: 'FINALIZADA',
-      4: 'CANCELADA',
-      5: 'TAREA_FALLIDA',
-      6: 'ELIMINADA_TECNICO',
-      7: 'ELIMINADA_SUPERVISOR'
+    if (!taskData.id_tipo_tarea) {
+      errors.push('Debe seleccionar un tipo de tarea');
     }
-    return statusMap[statusId] || 'ASIGNADA'
-  }
 
-  formatRut(rut) {
-    const cleaned = rut.replace(/[^0-9kK]/g, '')
-    const rutBody = cleaned.slice(0, -1)
-    const checkDigit = cleaned.slice(-1)
-    
-    return rutBody.replace(/(\d)(?=(\d{3})+(?!\d))/g, '$1.') + '-' + checkDigit
-  }
+    if (!taskData.id_local_cliente) {
+      errors.push('Debe seleccionar un local/cliente');
+    }
 
-  validateRut(rut) {
-    if (!rut || rut.length < 8) return false
+    if (taskData.fecha_programada) {
+      const programmedDate = new Date(taskData.fecha_programada);
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      
+      if (programmedDate < today) {
+        errors.push('La fecha programada no puede ser anterior a hoy');
+      }
+    }
+
+    return errors;
+  },
+
+  validateClientData(clientData) {
+    const errors = [];
+
+    if (!clientData.nombre || clientData.nombre.trim().length < 2) {
+      errors.push('El nombre debe tener al menos 2 caracteres');
+    }
+
+    if (!clientData.rut) {
+      errors.push('El RUT es obligatorio');
+    } else if (!this.validateRUT(clientData.rut)) {
+      errors.push('El RUT no tiene un formato válido');
+    }
+
+    if (clientData.email && !this.validateEmail(clientData.email)) {
+      errors.push('El email no tiene un formato válido');
+    }
+
+    return errors;
+  },
+
+  validateRUT(rut) {
+    if (!rut) return false;
     
-    const cleaned = rut.replace(/[^0-9kK]/g, '')
-    const rutBody = cleaned.slice(0, -1)
-    const checkDigit = cleaned.slice(-1).toUpperCase()
+    // Remover puntos y guión
+    const cleanRUT = rut.replace(/[.-]/g, '');
     
-    let sum = 0
-    let multiplier = 2
+    // Verificar que tenga entre 8 y 9 caracteres
+    if (cleanRUT.length < 8 || cleanRUT.length > 9) return false;
     
-    for (let i = rutBody.length - 1; i >= 0; i--) {
-      sum += parseInt(rutBody[i]) * multiplier
-      multiplier = multiplier === 7 ? 2 : multiplier + 1
+    // Separar número y dígito verificador
+    const number = cleanRUT.slice(0, -1);
+    const dv = cleanRUT.slice(-1).toLowerCase();
+    
+    // Verificar que el número sea válido
+    if (!/^\d+$/.test(number)) return false;
+    
+    // Calcular dígito verificador
+    let sum = 0;
+    let multiplier = 2;
+    
+    for (let i = number.length - 1; i >= 0; i--) {
+      sum += parseInt(number[i]) * multiplier;
+      multiplier = multiplier === 7 ? 2 : multiplier + 1;
     }
     
-    const remainder = sum % 11
-    const calculatedDigit = remainder === 0 ? '0' : remainder === 1 ? 'K' : String(11 - remainder)
+    const remainder = sum % 11;
+    const calculatedDV = remainder === 0 ? '0' : remainder === 1 ? 'k' : (11 - remainder).toString();
     
-    return calculatedDigit === checkDigit
-  }
+    return dv === calculatedDV;
+  },
 
-  handleError(error, defaultMessage = 'Error en operación') {
-    console.error(defaultMessage, error)
-    
-    if (error.response?.data?.message) {
-      throw new Error(error.response.data.message)
-    } else if (error.message) {
-      throw new Error(error.message)
-    } else {
-      throw new Error(defaultMessage)
+  validateEmail(email) {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return emailRegex.test(email);
+  },
+
+  // ========================================
+  // MÉTODOS DE FORMATO
+  // ========================================
+  
+  formatCurrency(amount) {
+    if (!amount) return '0';
+    return new Intl.NumberFormat('es-CL', {
+      style: 'currency',
+      currency: 'CLP',
+      minimumFractionDigits: 0
+    }).format(amount);
+  },
+
+  formatPhoneNumber(phone) {
+    if (!phone) return '';
+    // Formato chileno: +56 9 1234 5678
+    const cleaned = phone.replace(/\D/g, '');
+    if (cleaned.startsWith('56')) {
+      const number = cleaned.slice(2);
+      return `+56 ${number.slice(0, 1)} ${number.slice(1, 5)} ${number.slice(5)}`;
     }
-  }
-}
+    return phone;
+  },
 
-export default new SupervisorService()
+  formatRUT(rut) {
+    if (!rut) return '';
+    const cleaned = rut.replace(/[.-]/g, '');
+    if (cleaned.length < 8) return rut;
+    
+    const number = cleaned.slice(0, -1);
+    const dv = cleaned.slice(-1);
+    
+    // Agregar puntos cada 3 dígitos desde la derecha
+    const formatted = number.replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+    return `${formatted}-${dv}`;
+  },
+
+  // ========================================
+  // MÉTODOS DE ESTADO Y UI
+  // ========================================
+  
+  getTaskStatusIcon(status) {
+    const icons = {
+      'PENDIENTE': '⏳',
+      'EN_PROGRESO': '🔄',
+      'COMPLETADA': '✅',
+      'CANCELADA': '❌'
+    };
+    return icons[status] || '❓';
+  },
+
+  getTechnicianStatusIcon(status) {
+    const icons = {
+      'DISPONIBLE': '🟢',
+      'EN_TERRENO': '🔵',
+      'OCUPADO': '🟡',
+      'INACTIVO': '⚫'
+    };
+    return icons[status] || '❓';
+  },
+
+  getPriorityIcon(priority) {
+    const icons = {
+      'ALTA': '🔴',
+      'MEDIA': '🟡',
+      'BAJA': '🟢'
+    };
+    return icons[priority] || '⚪';
+  },
+
+  // ========================================
+  // MÉTODOS DE FILTRADO Y BÚSQUEDA
+  // ========================================
+  
+  filterTasks(tasks, filters) {
+    let filtered = [...tasks];
+
+    if (filters.search) {
+      const search = filters.search.toLowerCase();
+      filtered = filtered.filter(task => 
+        task.descripcion.toLowerCase().includes(search) ||
+        task.cliente.toLowerCase().includes(search) ||
+        task.tecnico_asignado?.toLowerCase().includes(search)
+      );
+    }
+
+    if (filters.status) {
+      filtered = filtered.filter(task => task.estado === filters.status);
+    }
+
+    if (filters.technician) {
+      filtered = filtered.filter(task => task.rut_persona_asignada === filters.technician);
+    }
+
+    if (filters.priority) {
+      filtered = filtered.filter(task => task.prioridad === filters.priority);
+    }
+
+    if (filters.dateFrom) {
+      const dateFrom = new Date(filters.dateFrom);
+      filtered = filtered.filter(task => new Date(task.fecha_programada) >= dateFrom);
+    }
+
+    if (filters.dateTo) {
+      const dateTo = new Date(filters.dateTo);
+      filtered = filtered.filter(task => new Date(task.fecha_programada) <= dateTo);
+    }
+
+    return filtered;
+  },
+
+  // ========================================
+  // MÉTODOS DE ESTADÍSTICAS
+  // ========================================
+  
+  calculateTaskStats(tasks) {
+    const total = tasks.length;
+    const pending = tasks.filter(t => t.estado === 'PENDIENTE').length;
+    const inProgress = tasks.filter(t => t.estado === 'EN_PROGRESO').length;
+    const completed = tasks.filter(t => t.estado === 'COMPLETADA').length;
+    const cancelled = tasks.filter(t => t.estado === 'CANCELADA').length;
+
+    return {
+      total,
+      pending,
+      inProgress,
+      completed,
+      cancelled,
+      completionRate: total > 0 ? ((completed / total) * 100).toFixed(1) : 0
+    };
+  },
+
+  calculateTechnicianStats(technicians) {
+    const total = technicians.length;
+    const active = technicians.filter(t => t.activo).length;
+    const available = technicians.filter(t => t.estado === 'DISPONIBLE').length;
+    const busy = technicians.filter(t => t.estado === 'EN_TERRENO').length;
+
+    return {
+      total,
+      active,
+      available,
+      busy,
+      utilization: active > 0 ? ((busy / active) * 100).toFixed(1) : 0
+    };
+  }
+};
+
+export default supervisorService;
